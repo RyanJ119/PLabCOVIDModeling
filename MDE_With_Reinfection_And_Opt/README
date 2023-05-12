@@ -1,0 +1,1 @@
+This folder contains discretization of a Measure Differential Equation coupled SIR compartmental model with viral mutation represented by a probability vector field with velocities applied at time intervals to govern mutation.
