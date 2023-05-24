@@ -55,7 +55,6 @@ class Agent:
         elif self.state == 'R':
             self.days_in_compartment += 1
             self.viralload -= self.viralload
-            # max(self.viralload - random.random() / 3, 0)
             ## Adds reinfectivity
             # if self.viralload <= 0:
             #     self.state = 'S'
@@ -81,11 +80,8 @@ def simulate():
 
     # Run simulation
     state_counts = []
-    # print(agents[6].viralload)
+    viral_load_data = [[] for _ in range(num_agents)]
     for t in range(time_steps):
-        # Shuffle agent order to prevent bias
-        #random.shuffle(agents)
-
         # Update agent states
         for agent in agents:
             neighbors = [neighbor for neighbor in agents if neighbor != agent]
@@ -108,12 +104,20 @@ def simulate():
                 infected_agent = random.choice(infected_agents)
                 susceptible_agent.viralload += infected_agent.viralload / 3
 
+        # Append viral load data for each agent at the current time step
+        for i, agent in enumerate(agents):
+            viral_load_data[i].append(agent.viralload)
 
-        # ## Calculate the average viral load for all agents
-        # avg_viral_loads = sum(agents.viralload for agents in agents if agents.get_state())/ len(agents)
-        # print(avg_viral_loads)
-        # viral_loads.append(avg_viral_loads)
-        # print(viral_loads)
+    # Write viral load data to a file
+    with open('viral_load.csv', 'w') as file:
+        for agent_loads in viral_load_data:
+            file.write(','.join(str(load) for load in agent_loads) + '\n')
+
+        ## Calculate the average viral load for all agents
+        avg_viral_loads = sum(agents.viralload for agents in agents if agents.get_state())/ len(agents)
+        print(avg_viral_loads)
+        viral_loads.append(avg_viral_loads)
+        print(viral_loads)
 
     return state_counts
 
@@ -157,7 +161,6 @@ plt.ylabel('Viral Load')
 plt.legend()
 plt.show()
 
-
 # # Plot viral load probability distribution over time
 # fig = plt.figure(figsize=(10, 8))
 # ax = fig.add_subplot(111, projection='3d')
@@ -193,4 +196,4 @@ plt.show()
 # plt.title('Viral load probability distribution over time')
 #
 # plt.show()
-#
+
