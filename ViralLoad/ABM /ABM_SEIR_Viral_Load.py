@@ -104,6 +104,13 @@ def simulate():
                 infected_agent = random.choice(infected_agents)
                 susceptible_agent.viralload += infected_agent.viralload / 3
 
+        ## Calculate the average viral load for all agents
+        avg_viral_loads = sum(agents.viralload for agents in agents if agents.get_state())/ len(agents)
+        print(avg_viral_loads)
+        viral_loads.append(avg_viral_loads)
+        print(viral_loads)                
+                
+                
         # Append viral load data for each agent at the current time step
         for i, agent in enumerate(agents):
             viral_load_data[i].append(agent.viralload)
@@ -112,12 +119,6 @@ def simulate():
     with open('viral_load.csv', 'w') as file:
         for agent_loads in viral_load_data:
             file.write(','.join(str(load) for load in agent_loads) + '\n')
-
-        ## Calculate the average viral load for all agents
-        avg_viral_loads = sum(agents.viralload for agents in agents if agents.get_state())/ len(agents)
-        print(avg_viral_loads)
-        viral_loads.append(avg_viral_loads)
-        print(viral_loads)
 
     return state_counts
 
