@@ -48,6 +48,7 @@ class Agent:
         elif self.state == 'I':
             self.days_in_compartment += 1
             self.viralload -= random.random() / 3
+            self.viralload = max(self.viralload, 0)  # Prevent viral load from going below zero
             if self.viralload <= thresh3:
                 self.state = 'R'
                 self.days_in_compartment = 0
@@ -161,40 +162,4 @@ plt.yticks(rotation=45)
 plt.ylabel('Viral Load')
 plt.legend()
 plt.show()
-
-# # Plot viral load probability distribution over time
-# fig = plt.figure(figsize=(10, 8))
-# ax = fig.add_subplot(111, projection='3d')
-#
-# # Define histogram bins and limits
-# nbins = 50
-# viralload_bins = np.linspace(0, 1, nbins+1)
-# time_bins = np.arange(time_steps+1)
-# xlim = [0, time_steps]
-# ylim = [0, 1]
-# zlim = [0, 1]
-#
-# # Compute 3D histogram of viral load data
-# H, edges = np.histogramdd((np.arange(len(viral_loads)), viral_loads), bins=(time_bins, viralload_bins))
-# X, Y = np.meshgrid(time_bins[:-1], viralload_bins[:-1], indexing='ij')
-# X = X.flatten()
-# Y = Y.flatten()
-# Z = H.flatten()
-#
-# # Plot 3D histogram as a surface plot
-# ax.plot_trisurf(X, Y, Z, cmap=plt.cm.viridis, linewidth=0.2)
-#
-# # Set axis limits and labels
-# ax.set_xlim(xlim)
-# ax.set_ylim(ylim)
-# ax.set_zlim(zlim)
-# ax.set_xlabel('Time steps')
-# ax.set_ylabel('Viral load')
-# ax.set_zlabel('Probability density')
-#
-# # Add colorbar and title
-# fig.colorbar(plt.cm.ScalarMappable(cmap=plt.cm.viridis), ax=ax, shrink=0.5)
-# plt.title('Viral load probability distribution over time')
-#
-# plt.show()
 
