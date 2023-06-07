@@ -1,32 +1,84 @@
-import pandas as pd
 import numpy as np
+import scipy as sp
+from scipy.stats import gaussian_kde
+from scipy.stats import norm
+import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Read the CSV file
-df = pd.read_csv('viral_load.csv')
 
-# Generate a grid of X, Y, and Z values
+df = pd.read_csv('viral_load.csv', header = None)
+
+def my_kde(data, width=.35, gridsize=100, normalized=True, bounds=None):
+    """
+    Compute the gaussian KDE from the given sample.
+
+    Args:
+        data (array or list): sample of values
+        width (float): width of the normal functions
+        gridsize (int): number of grid points on which the kde is computed
+        normalized (bool): if True the KDE is normalized (default)
+        bounds (tuple): min and max value of the kde
+
+    Returns:
+        The grid and the KDE
+    """
+    # boundaries
+    if bounds:
+        xmin, xmax = bounds
+    else:
+        xmin = min(data) - 3 * width
+        xmax = max(data) + 3 * width
+
+    # grid points
+    x = np.linspace(xmin, xmax, gridsize)
+
+    # compute kde
+    kde = np.zeros(gridsize)
+    for val in data:
+        kde += norm.pdf(x, loc=val, scale=width)
+
+    # normalized the KDE
+    if normalized:
+        kde /= sp.integrate.simps(kde, x)
+
+    return x, kde
+
+x, kde = my_kde(df[15], gridsize=100)
+''
+x = np.ones( (200,100) )
+kde =  np.ones( (200,100) )
+for i in range(1,100):
+
+    x[:,i], kde[:,i] = my_kde(df[i], gridsize=200)
+
+
+ax = sns.distplot(df[15], hist=False, axlabel="Something ?",
+                  kde_kws=dict(gridsize=200, bw=1, label="seaborn"))
+
+ax.plot(x, kde, "o", label="my_kde")
+plt.legend();
+
+
 X = np.arange(df.shape[1])  # Time steps
-Y = np.arange(df.shape[0])  # Persons
-X, Y = np.meshgrid(X, Y)
+#X =np.linspace(0,100,100)  # Time steps
 
-# Extract the viral load data from the DataFrame
-Z = df.values
+Y = x # Persons
+Z = kde
+#X, Y = np.meshgrid(X, Y)
 
-# Normalize the viral load data between 0 and 1
-Z_normalized = (Z - Z.min()) / (Z.max() - Z.min())
 
-# Create a 3D plot
+#Create a 3D plot
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
 # Plot the heat map with normalized values
-ax.plot_surface(X, Y, Z_normalized, cmap='viridis')
+ax.plot_surface(X, Y, Z, cmap='viridis')
 
 # Set labels and title
 ax.set_xlabel('Time')
-ax.set_ylabel('Agents')
-ax.set_zlabel('Viral Load Probability')
+ax.set_ylabel('Viral Load')
+ax.set_zlabel('Probability Density')
 ax.set_title('Probability Density of Viral Load')
 
 # Display the plot
