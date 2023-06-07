@@ -100,20 +100,20 @@ def simulate():
         r_count = sum([1 for agent in agents if agent.get_state() == 'R'])
         state_counts.append([s_count, e_count, i_count, r_count])
 
-        ## Interact n randomly chosen susceptible and infected agents
-        for i in range(num_interactions):
-            susceptible_agents = [agent for agent in agents if agent.get_state() == 'S']
-            infected_agents = [agent for agent in agents if agent.get_state() == 'I']
-            if len(susceptible_agents) > 0 and len(infected_agents) > 0:
-                susceptible_agent = random.choice(susceptible_agents)
-                infected_agent = random.choice(infected_agents)
-                susceptible_agent.viralload += infected_agent.viralload / 3
+#         ## Interact n randomly chosen susceptible and infected agents
+#         for i in range(num_interactions):
+#             susceptible_agents = [agent for agent in agents if agent.get_state() == 'S']
+#             infected_agents = [agent for agent in agents if agent.get_state() == 'I']
+#             if len(susceptible_agents) > 0 and len(infected_agents) > 0:
+#                 susceptible_agent = random.choice(susceptible_agents)
+#                 infected_agent = random.choice(infected_agents)
+#                 susceptible_agent.viralload += infected_agent.viralload / 3
 
         ## Calculate the average viral load for all agents
         avg_viral_loads = sum(agents.viralload for agents in agents if agents.get_state())/ len(agents)
-        print(avg_viral_loads)
+#         print(avg_viral_loads)
         viral_loads.append(avg_viral_loads)
-        print(viral_loads)                
+#         print(viral_loads)                
                 
                 
         # Append viral load data for each agent at the current time step
