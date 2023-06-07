@@ -56,10 +56,14 @@ class Agent:
         elif self.state == 'R':
             self.days_in_compartment += 1
             self.viralload -= self.viralload
-            ## Adds reinfectivity
+#             # # ## Adds reinfectivity
             # if self.viralload <= 0:
-            #     self.state = 'S'
-            self.days_in_compartment = 0
+            #     if self.immune_days >= immune_period:  # Check if the agent's immunity period is over
+            #         self.state = 'S'
+            #         self.days_in_compartment = 0
+            #         self.immune_days = 0    # Reset the immune days counter
+            #     else:
+            #         self.immune_days += 1
 
     def get_state(self):
         return self.state
