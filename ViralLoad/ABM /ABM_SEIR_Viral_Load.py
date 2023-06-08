@@ -6,7 +6,6 @@ num_agents = 500  # Number of agents in the simulation
 num_infected = 5  # Number of initially infected agents
 infection_rate = 0.005  # Probability of transmission per contact
 latentperiod = 5
-infectious_period = 14  # Duration of the infectious period in time steps
 time_steps = 100  # Number of time steps in the simulation
 num_interactions = 5  # Number of interactions per time step
 
