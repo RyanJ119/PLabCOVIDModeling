@@ -1,85 +1,71 @@
 import numpy as np
-import scipy as sp
-from scipy.stats import gaussian_kde
-from scipy.stats import norm
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
+# Load the viral load data from the CSV file
+data = pd.read_csv('viral_load.csv', header=None)
+# Prepare data for plotting
 
-df = pd.read_csv('viral_load.csv', header = None)
+# Multiply the viral load data by 10 and round it
+viral_loads = np.round(data.values * 10)
 
-def my_kde(data, width=.35, gridsize=100, normalized=True, bounds=None):
-    """
-    Compute the gaussian KDE from the given sample.
+# Initialize time steps based on number of columns
+time_steps = np.arange(viral_loads.shape[1])  # Assume time steps start from 1
 
-    Args:
-        data (array or list): sample of values
-        width (float): width of the normal functions
-        gridsize (int): number of grid points on which the kde is computed
-        normalized (bool): if True the KDE is normalized (default)
-        bounds (tuple): min and max value of the kde
-
-    Returns:
-        The grid and the KDE
-    """
-    # boundaries
-    if bounds:
-        xmin, xmax = bounds
-    else:
-        xmin = min(data) - 3 * width
-        xmax = max(data) + 3 * width
-
-    # grid points
-    x = np.linspace(xmin, xmax, gridsize)
-
-    # compute kde
-    kde = np.zeros(gridsize)
-    for val in data:
-        kde += norm.pdf(x, loc=val, scale=width)
-
-    # normalized the KDE
-    if normalized:
-        kde /= sp.integrate.simps(kde, x)
-
-    return x, kde
-
-x, kde = my_kde(df[15], gridsize=100)
-''
-x = np.ones( (200,100) )
-kde =  np.ones( (200,100) )
-for i in range(1,100):
-
-    x[:,i], kde[:,i] = my_kde(df[i], gridsize=200)
-
-
-ax = sns.distplot(df[15], hist=False, axlabel="Something ?",
-                  kde_kws=dict(gridsize=200, bw=1, label="seaborn"))
-
-ax.plot(x, kde, "o", label="my_kde")
-plt.legend();
-
-
-X = np.arange(df.shape[1])  # Time steps
-#X =np.linspace(0,100,100)  # Time steps
-
-Y = x # Persons
-Z = kde
-#X, Y = np.meshgrid(X, Y)
-
-
-#Create a 3D plot
+# Create a 3D surface plot
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-# Plot the heat map with normalized values
-ax.plot_surface(X, Y, Z, cmap='viridis')
+# Define the number of bins for the viral load histogram
+num_bins = 9
 
-# Set labels and title
-ax.set_xlabel('Time')
-ax.set_ylabel('Viral Load')
+# Create arrays to store the bin edges and heights for each time step
+bin_edges = np.linspace(0, np.max(viral_loads), num_bins + 1)
+bin_heights = np.zeros((num_bins, len(time_steps)))
+
+# Iterate over each time step
+for i, time_step in enumerate(time_steps):
+    # Compute the histogram for the current time step
+    hist, _ = np.histogram(viral_loads[:, i], bins=bin_edges)
+
+    # Store the bin heights
+    bin_heights[:, i] = hist / len(viral_loads)   # Compute normalized probability density
+
+# Create a meshgrid for the bin edges and time steps
+X, Y = np.meshgrid(bin_edges[:-1], time_steps)
+Z = bin_heights.T
+# Create the surface plot
+surf = ax.plot_surface(X, Y, Z, cmap='viridis', edgecolor='none')
+
+# Set the labels and title
+ax.set_xlabel('Viral Load')
+ax.set_ylabel('Time Steps')
 ax.set_zlabel('Probability Density')
-ax.set_title('Probability Density of Viral Load')
-
-# Display the plot
+ax.set_title('3D Probability Distribution of Viral Load')
+# Add a colorbar
+fig.colorbar(surf, ax=ax, shrink=0.5, aspect=10, pad=0.15)
+# Show the plot
 plt.show()
+
+
+# # Create an empty list to store the mean viral load for each time step
+# mean_viral_loads = []
+#
+# # Compute the mean viral load for each time step
+# for i, time_step in enumerate(time_steps):
+#     non_zero_values = viral_loads[:, i][viral_loads[:, i] != 0]  # Select non-zero values at the current time step
+#     if len(non_zero_values) > 0:  # Check if there are non-zero values
+#         mean_viral_load = np.mean(non_zero_values)
+#         mean_viral_loads.append(mean_viral_load)
+#
+# # Plot the viral load over time
+# plt.plot(time_steps[:len(mean_viral_loads)], mean_viral_loads, marker='o')  # Use sliced time_steps for non-zero mean values
+# plt.xlabel('Time Steps')
+# plt.ylabel('Viral Load')
+# plt.title('Non-Zero Mean Viral Load Over Time')
+# plt.grid(True)
+#
+# # Show the plot
+# plt.show()
+
