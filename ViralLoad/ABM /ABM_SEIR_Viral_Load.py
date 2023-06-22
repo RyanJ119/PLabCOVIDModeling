@@ -1,13 +1,15 @@
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+
 # Define model parameters
 num_agents = 500  # Number of agents in the simulation
 num_infected = 5  # Number of initially infected agents
 infection_rate = 0.005  # Probability of transmission per contact
-latentperiod = 5
+latent_period = 5  # Period from getting infected to becoming infectious
+infectious_period = 14  # Duration of the infectious period in time steps
 time_steps = 100  # Number of time steps in the simulation
-num_interactions = 5  # Number of interactions per time step
+immune_period = 7
 
 # Empty list to append the average viral loads at each time step
 viral_loads = []
@@ -17,32 +19,33 @@ thresh1 = 0.05
 thresh2 = 0.9
 thresh3 = 0.2
 
+
 # Define agent class
 class Agent:
-    def __init__(self, state, viralload):
+    def __init__(self, state, viralload, age):
         self.state = state
         self.days_in_compartment = 0
         self.viralload = viralload
-
+        self.immune_days = 0
+        self.age = age
     def update_state(self, neighbors):
         if self.state == 'S':
             self.days_in_compartment += 1
             for neighbor in neighbors:
                 if neighbor.state == 'I' and random.random() < infection_rate:
                     self.viralload += random.random() / 3
-                    if self.viralload > thresh1:
-                        self.state = 'E'
-                        self.days_in_compartment = 0
+            if self.viralload > thresh1:
+                self.state = 'E'
+                self.days_in_compartment = 0
         elif self.state == 'E':
             self.days_in_compartment += 1
             self.viralload += random.random() / 3
-            if self.days_in_compartment < latentperiod and self.viralload > thresh2:
+            if self.days_in_compartment < latent_period and self.viralload > thresh2:
                 self.state = 'I'
                 self.days_in_compartment = 0
-            elif self.days_in_compartment >= latentperiod:
+            elif self.days_in_compartment >= latent_period:
                 self.state = 'R'
                 self.days_in_compartment = 0
-
 
         elif self.state == 'I':
             self.days_in_compartment += 1
@@ -55,7 +58,7 @@ class Agent:
         elif self.state == 'R':
             self.days_in_compartment += 1
             self.viralload -= self.viralload
-#             # # ## Adds reinfectivity
+            # # ## Adds reinfectivity
             # if self.viralload <= 0:
             #     if self.immune_days >= immune_period:  # Check if the agent's immunity period is over
             #         self.state = 'S'
@@ -63,23 +66,26 @@ class Agent:
             #         self.immune_days = 0    # Reset the immune days counter
             #     else:
             #         self.immune_days += 1
-
     def get_state(self):
         return self.state
+    def get_age(self):
+        return self.age
 
 
 # Define simulation function
 def simulate():
     # Initialize agents
     agents = []
+    age_distribution = np.clip(np.random.normal(40, 20, num_agents), 0, None)  # Mean age of 40 and std dev of 20
     for i in range(num_agents):
+        age = int(age_distribution[i])
         if i < num_infected:
             state = 'I'
-            viralload = (thresh2+thresh3)/2
+            viralload = (thresh2 + thresh3) / 2
         else:
             state = 'S'
             viralload = 0
-        agent = Agent(state, viralload)
+        agent = Agent(state, viralload, age)
         agents.append(agent)
 
     # Run simulation
@@ -91,6 +97,21 @@ def simulate():
             neighbors = [neighbor for neighbor in agents if neighbor != agent]
             agent.update_state(neighbors)
 
+        # # Interact n randomly chosen agents and add viral load
+        # for _ in range(500):  # Choose 5 random interactions per time step
+        #     random_agents = random.sample(agents, 2)
+        #     agent1, agent2 = random_agents[0], random_agents[1]
+        #
+        #     if agent1.get_state() == 'S' and agent2.get_state() == 'I':
+        #         susceptible_agent = agent1
+        #         infected_agent = agent2
+        #     elif agent1.get_state() == 'I' and agent2.get_state() == 'S':
+        #         susceptible_agent = agent2
+        #         infected_agent = agent1
+        #     else:
+        #         continue
+        #
+        #     susceptible_agent.viralload += infected_agent.viralload / 3
 
         # Record state counts
         s_count = sum([1 for agent in agents if agent.get_state() == 'S'])
@@ -99,22 +120,10 @@ def simulate():
         r_count = sum([1 for agent in agents if agent.get_state() == 'R'])
         state_counts.append([s_count, e_count, i_count, r_count])
 
-#         ## Interact n randomly chosen susceptible and infected agents
-#         for i in range(num_interactions):
-#             susceptible_agents = [agent for agent in agents if agent.get_state() == 'S']
-#             infected_agents = [agent for agent in agents if agent.get_state() == 'I']
-#             if len(susceptible_agents) > 0 and len(infected_agents) > 0:
-#                 susceptible_agent = random.choice(susceptible_agents)
-#                 infected_agent = random.choice(infected_agents)
-#                 susceptible_agent.viralload += infected_agent.viralload / 3
-
         ## Calculate the average viral load for all agents
-        avg_viral_loads = sum(agents.viralload for agents in agents if agents.get_state())/ len(agents)
-#         print(avg_viral_loads)
+        avg_viral_loads = sum(agents.viralload for agents in agents if agents.get_state()) / len(agents)
         viral_loads.append(avg_viral_loads)
-#         print(viral_loads)                
-                
-                
+
         # Append viral load data for each agent at the current time step
         for i, agent in enumerate(agents):
             viral_load_data[i].append(agent.viralload)
@@ -136,8 +145,6 @@ e_counts = state_counts[:, 1]
 i_counts = state_counts[:, 2]
 r_counts = state_counts[:, 3]
 
-
-
 ## Plot SEIR dynamics for each state of agents over time
 plt.figure(figsize=(10, 8))
 plt.plot(s_counts, label='Susceptible')
@@ -150,14 +157,14 @@ plt.title('Agent-based SEIR model simulation')
 plt.legend()
 plt.show()
 
-## collect time total steps in a vector
+## Collect time total steps in a vector
 step_count = []
 for steps in range(time_steps):
     step_count.append(steps)
 
-# # # Plot the average viral loads over time
+# Plot the average viral loads over time
 plt.figure(figsize=(10, 8))
-plt.plot(step_count, viral_loads, label='Total Viral Load', color = 'purple')
+plt.plot(step_count, viral_loads, label='Total Viral Load', color='purple')
 plt.title('Average Viral Load Over Time')
 plt.xlabel('Time Steps')
 plt.xticks(rotation=45)
