@@ -9,7 +9,7 @@ infection_rate = 0.005  # Probability of transmission per contact
 latent_period = 5  # Period from getting infected to becoming infectious
 infectious_period = 14  # Duration of the infectious period in time steps
 time_steps = 100  # Number of time steps in the simulation
-immune_period = 7
+immune_period = 7  # Number of days agent is immune from reinfection
 
 # Empty list to append the average viral loads at each time step
 viral_loads = []
@@ -74,17 +74,28 @@ class Agent:
 
 # Define simulation function
 def simulate():
+    # Define age groups and probabilities
+    age_groups = ['0-10', '11-20', '21-30', '31-40', '41-50', '51-60', '61-70', '71-80', '81-100']
+    age_probs = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+
+    # Normalize probabilities
+    age_probs_normalized = [prob / sum(age_probs) for prob in age_probs]
+
     # Initialize agents
     agents = []
-    age_distribution = np.clip(np.random.normal(40, 20, num_agents), 0, None)  # Mean age of 40 and std dev of 20
     for i in range(num_agents):
-        age = int(age_distribution[i])
         if i < num_infected:
             state = 'I'
             viralload = (thresh2 + thresh3) / 2
         else:
             state = 'S'
             viralload = 0
+
+        # Assign age based on age groups and probabilities
+        age_group = np.random.choice(age_groups, p=age_probs_normalized)
+        age_range = age_group.split('-')
+        age = random.randint(int(age_range[0]), int(age_range[1]))
+
         agent = Agent(state, viralload, age)
         agents.append(agent)
 
@@ -128,13 +139,17 @@ def simulate():
         for i, agent in enumerate(agents):
             viral_load_data[i].append(agent.viralload)
 
-    # Write viral load data to a file
-    with open('viral_load.csv', 'w') as file:
-        for agent_loads in viral_load_data:
-            file.write(','.join(str(load) for load in agent_loads) + '\n')
+
+        # Print ages of all agents
+    for i, agent in enumerate(agents):
+        print(f"Agent {i + 1} age: {agent.get_age()}")
+
+    # # Write viral load data to a file
+    # with open('viral_load.csv', 'w') as file:
+    #     for agent_loads in viral_load_data:
+    #         file.write(','.join(str(load) for load in agent_loads) + '\n')
 
     return state_counts
-
 
 # Run simulation and plot results
 state_counts = simulate()
@@ -172,4 +187,5 @@ plt.yticks(rotation=45)
 plt.ylabel('Viral Load')
 plt.legend()
 plt.show()
+
 
