@@ -24,6 +24,8 @@ immunosenescence_factors = [0.95, 0.75, 0.7, 0.5, 0.3, 0.2, 0.1]
 
 # Empty list to append the average viral loads at each time step
 viral_loads = []
+# Create a list to store the areas under the viral load curves for each age group
+viral_load_areas = []
 
 # Viral load thresholds to determine when agents change compartments
 thresh1 = 0.05
@@ -105,6 +107,11 @@ class Agent:
         return self.state
     def get_age(self):
         return self.age
+    def get_age_group(self):
+        for age_group in age_groups:
+            age_range = age_group.split('-')
+            if int(age_range[0]) <= self.age <= int(age_range[1]):
+                return age_group
     def die(self):
         self.is_dead = True
 
@@ -116,6 +123,8 @@ def simulate():
     agents = []
     people_count = [0] * len(age_groups)
     deaths_by_ages = [0] * len(death_rates)
+    # Create lists to store viral load data for each age group
+    viral_load_data_by_age = [[] for _ in range(len(age_groups))]
     for i in range(num_agents):
         if i < num_infected:
             state = 'I'
@@ -146,8 +155,51 @@ def simulate():
             neighbors = [neighbor for neighbor in agents if neighbor != agent]
             agent.update_state(neighbors, deaths_by_ages)
 
-        # Interact n randomly chosen agents and add viral load
-        for _ in range(500):  # Choose 500 random interactions per time step
+            # Get the age group of the current agent
+            age_group_index = None
+            for index, age_group in enumerate(age_groups):
+                age_range = age_group.split('-')
+                if int(age_range[0]) <= agent.age <= int(age_range[1]):
+                    age_group_index = index
+
+            if age_group_index is not None:
+                # Append viral load data to corresponding age group list
+                viral_load_data_by_age[age_group_index].append(agent.viralload)
+
+        # Create a social interaction matrix based on age group probabilities
+        social_interaction_matrix = np.array([
+            [2.5982, 0.8003, 0.3160, 0.7934, 0.3557, 0.1548, 0.0564],
+            [0.6473, 4.1960, 0.6603, 0.5901, 0.4665, 0.1238, 0.0515],
+            [0.1737, 1.7500, 11.1061, 0.9782, 0.7263, 0.0815, 0.0273],
+            [0.5504, 0.5906, 1.2004, 1.8813, 0.9165, 0.1370, 0.0397],
+            [0.3894, 0.7848, 1.3139, 1.1414, 1.3347, 0.2260, 0.0692],
+            [0.3610, 0.3918, 0.3738, 0.5248, 0.5140, 0.7072, 0.1469],
+            [0.1588, 0.3367, 0.3406, 0.2286, 0.3637, 0.3392, 0.3868]
+        ])
+
+        # Add a flag to track the initial interaction
+        initial_interaction = True
+        # Initial interaction outside the loop
+        if initial_interaction:
+            print('initial interaction')
+            infected_agents = ([agent for agent in agents if agent.get_state() == 'I'])
+            if infected_agents:
+                infected_agent = random.choice(infected_agents)
+                susceptible_agents = [agent for agent in agents if agent.get_state() == 'S']
+                age_group_indices = [age_groups.index(age_group) for age_group in age_groups]
+
+                for susceptible_agent in susceptible_agents:
+                    age_group_index_infected = age_group_indices[age_groups.index(infected_agent.get_age_group())]
+                    age_group_index_susceptible = age_group_indices[age_groups.index(susceptible_agent.get_age_group())]
+
+                    interaction_prob = social_interaction_matrix[age_group_index_infected, age_group_index_susceptible]
+
+                    if random.random() < interaction_prob:
+                        susceptible_agent.viralload += infected_agent.viralload / 3
+
+        # Modify the interaction loop inside the simulation
+        for _ in range(500):
+            print("random interaction")
             random_agents = random.sample(agents, 2)
             agent1, agent2 = random_agents[0], random_agents[1]
 
@@ -175,6 +227,7 @@ def simulate():
         avg_viral_loads = sum(agent.viralload for agent in agents if agent.get_state() != 'D') \
             / len([agent for agent in agents if agent.get_state() != 'D'])
         viral_loads.append(avg_viral_loads)
+        print(avg_viral_loads)
 
         # Append viral load data for each agent at the current time step
         for i, agent in enumerate(agents):
@@ -182,6 +235,14 @@ def simulate():
 
     age_df = pd.DataFrame({'Age Group': age_groups, 'People': people_count, 'Deaths': deaths_by_ages})
     print(age_df)
+
+    # Calculate areas under the viral load curves for each age group
+    for age_viral_loads in viral_load_data_by_age:
+        area_under_curve = np.trapz(age_viral_loads)
+        viral_load_areas.append(area_under_curve)
+
+    # Print the areas under the viral load curves for each age group
+    print("Areas under viral load curves:", viral_load_areas)
 
     #     # Print ages of all agents
     # for i, agent in enumerate(agents):
@@ -192,10 +253,10 @@ def simulate():
     #     for agent_loads in viral_load_data:
     #         file.write(','.join(str(load) for load in agent_loads) + '\n')
 
-    return state_counts, agents
+    return state_counts, agents, viral_loads
 
-# Run simulation and plot results
-state_counts, agents = simulate()
+# Run simulation
+state_counts, agents, viral_loads = simulate()
 state_counts = np.array(state_counts)
 
 s_counts = state_counts[:, 0]
@@ -204,34 +265,59 @@ i_counts = state_counts[:, 2]
 r_counts = state_counts[:, 3]
 d_counts = state_counts[:, 4]
 
-## Plot SEIR dynamics for each state of agents over time
-plt.figure(figsize=(10, 8))
-plt.plot(s_counts, label='Susceptible')
-plt.plot(e_counts, label='Exposed')
-plt.plot(i_counts, label='Infected')
-plt.plot(r_counts, label='Recovered')
-plt.plot(d_counts, label='Deaths')
-plt.xlabel('Time steps')
-plt.ylabel('Number of agents')
-plt.title('Agent-based SEIRD model simulation')
-plt.legend()
-plt.grid(True)
-plt.show()
 
-## Collect time total steps in a vector
-step_count = []
-for steps in range(time_steps):
-    step_count.append(steps)
+# # Run simulation 100 times and accumulate results
+# num_simulations = 5
+# avg_state_counts = np.zeros((time_steps, 5))  # Initialize an array to accumulate state counts
+# all_viral_loads = []  # Initialize a list to accumulate viral load data
+#
+# for _ in range(num_simulations):
+#     state_counts, agents, viral_loads = simulate()
+#     avg_state_counts += np.array(state_counts)
+#     all_viral_loads.append(viral_loads)  # Store the viral load data for this simulation
+#
+# avg_state_counts /= num_simulations  # Calculate the average state counts over all simulations
+# avg_viral_loads = np.mean(all_viral_loads, axis=0)  # This is the overall average viral load
+#
+# # Extract individual state counts for plotting
+# s_counts = avg_state_counts[:, 0]
+# e_counts = avg_state_counts[:, 1]
+# i_counts = avg_state_counts[:, 2]
+# r_counts = avg_state_counts[:, 3]
+# d_counts = avg_state_counts[:, 4]
 
-## Plot the average viral loads over time
-plt.figure(figsize=(10, 8))
-plt.plot(step_count, viral_loads, label='Total Viral Load', color='purple')
-plt.title('Average Viral Load Over Time')
-plt.xlabel('Time Steps')
-plt.ylabel('Viral Load')
-plt.xticks(rotation=45)
-plt.yticks(rotation=45)
-plt.legend()
-plt.grid(True)
-plt.show()
+def plotting_function():
 
+    # Plot SEIR dynamics for each state of agents over time
+    plt.figure(figsize=(10, 8))
+    plt.plot(s_counts, label='Susceptible')
+    plt.plot(e_counts, label='Exposed')
+    plt.plot(i_counts, label='Infected')
+    plt.plot(r_counts, label='Recovered')
+    plt.plot(d_counts, label='Deaths')
+    plt.xlabel('Time steps')
+    plt.ylabel('Number of agents')
+    plt.title('Agent-based SEIRD model simulation')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    ## Collect time total steps in a vector
+    step_count = []
+    for steps in range(time_steps):
+        step_count.append(steps)
+
+    # Plot the average viral loads over time
+    plt.figure(figsize=(10, 8))
+    plt.plot(step_count, viral_loads, label='Total Viral Load', color='purple')
+    plt.title('Average Viral Load Over Time')
+    plt.xlabel('Time Steps')
+    plt.ylabel('Viral Load')
+    plt.xticks(rotation=45)
+    plt.yticks(rotation=45)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# Call the new function to run the simulation and plot the results
+plotting_function()
