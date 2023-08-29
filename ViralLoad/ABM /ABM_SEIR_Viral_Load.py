@@ -166,7 +166,7 @@ def simulate():
                 # Append viral load data to corresponding age group list
                 viral_load_data_by_age[age_group_index].append(agent.viralload)
 
-        # Create a social interaction matrix based on age group probabilities
+        # Create a social interaction matrix based on age group
         social_interaction_matrix = np.array([
             [2.5982, 0.8003, 0.3160, 0.7934, 0.3557, 0.1548, 0.0564],
             [0.6473, 4.1960, 0.6603, 0.5901, 0.4665, 0.1238, 0.0515],
@@ -177,42 +177,45 @@ def simulate():
             [0.1588, 0.3367, 0.3406, 0.2286, 0.3637, 0.3392, 0.3868]
         ])
 
-        # Add a flag to track the initial interaction
-        initial_interaction = True
-        # Initial interaction outside the loop
-        if initial_interaction:
-            print('initial interaction')
-            infected_agents = ([agent for agent in agents if agent.get_state() == 'I'])
-            if infected_agents:
-                infected_agent = random.choice(infected_agents)
-                susceptible_agents = [agent for agent in agents if agent.get_state() == 'S']
-                age_group_indices = [age_groups.index(age_group) for age_group in age_groups]
-
-                for susceptible_agent in susceptible_agents:
-                    age_group_index_infected = age_group_indices[age_groups.index(infected_agent.get_age_group())]
-                    age_group_index_susceptible = age_group_indices[age_groups.index(susceptible_agent.get_age_group())]
-
-                    interaction_prob = social_interaction_matrix[age_group_index_infected, age_group_index_susceptible]
-
-                    if random.random() < interaction_prob:
-                        susceptible_agent.viralload += infected_agent.viralload / 3
+        # social_interaction_matrix = np.array([
+        #     [0.1, 0.05, 0.03, 0.01, 0.01, 0.005, 0.001],
+        #     [0.05, 0.1, 0.05, 0.03, 0.02, 0.01, 0.005],
+        #     [0.03, 0.05, 0.1, 0.05, 0.03, 0.02, 0.01],
+        #     [0.01, 0.03, 0.05, 0.1, 0.05, 0.03, 0.02],
+        #     [0.01, 0.02, 0.03, 0.05, 0.1, 0.05, 0.03],
+        #     [0.005, 0.01, 0.02, 0.03, 0.05, 0.1, 0.05],
+        #     [0.001, 0.005, 0.01, 0.02, 0.03, 0.05, 0.1]
+        # ]
 
         # Modify the interaction loop inside the simulation
-        for _ in range(500):
+        for _ in range(1000):
             print("random interaction")
-            random_agents = random.sample(agents, 2)
-            agent1, agent2 = random_agents[0], random_agents[1]
+            agent1 = random.choice(agents)  # Choose a random agent
 
-            if agent1.get_state() == 'S' and agent2.get_state() == 'I':
-                susceptible_agent = agent1
-                infected_agent = agent2
-            elif agent1.get_state() == 'I' and agent2.get_state() == 'S':
-                susceptible_agent = agent2
-                infected_agent = agent1
-            else:
-                continue
+            # Normalize the social interaction matrix and compute rolling sums of the rows
+            normalized_matrix = social_interaction_matrix / np.sum(social_interaction_matrix, axis=1, keepdims=True)
+            row_sums = np.cumsum(normalized_matrix, axis=1)
 
-            susceptible_agent.viralload += infected_agent.viralload / 3
+            # Choose the second agent based on age group using the rolling sums
+            random_value = random.random()
+            age_group = agent1.get_age_group()  # Use get_age_group() method
+            age_group_index = age_groups.index(age_group)
+
+            if age_group_index is not None:
+                agents_in_age_group = [agent for agent in agents if agent.get_age_group() == age_group]
+                agent2 = random.choice(agents_in_age_group)
+
+                # Check if one agent is susceptible and the other is infected
+                if agent1.get_state() == 'S' and agent2.get_state() == 'I':
+                    susceptible_agent = agent1
+                    infected_agent = agent2
+                elif agent1.get_state() == 'I' and agent2.get_state() == 'S':
+                    susceptible_agent = agent2
+                    infected_agent = agent1
+                else:
+                    continue
+
+                susceptible_agent.viralload += infected_agent.viralload / 3
 
         # Record state counts
         s_count = sum([1 for agent in agents if agent.get_state() == 'S'])
@@ -267,17 +270,19 @@ d_counts = state_counts[:, 4]
 
 
 # # Run simulation 100 times and accumulate results
-# num_simulations = 5
+# num_simulations = 2
 # avg_state_counts = np.zeros((time_steps, 5))  # Initialize an array to accumulate state counts
-# all_viral_loads = []  # Initialize a list to accumulate viral load data
+# viral_loads_matrix = np.zeros((num_simulations, time_steps))  # Initialize a matrix for viral load data
 #
-# for _ in range(num_simulations):
+# for simulation in range(num_simulations):
 #     state_counts, agents, viral_loads = simulate()
 #     avg_state_counts += np.array(state_counts)
-#     all_viral_loads.append(viral_loads)  # Store the viral load data for this simulation
+#     viral_loads_matrix[simulation, :] = viral_loads  # Store the viral load data for this simulation
 #
 # avg_state_counts /= num_simulations  # Calculate the average state counts over all simulations
-# avg_viral_loads = np.mean(all_viral_loads, axis=0)  # This is the overall average viral load
+#
+# # Calculate the average viral load over simulations for each time step
+# avg_viral_loads = np.mean(viral_loads_matrix, axis=0)
 #
 # # Extract individual state counts for plotting
 # s_counts = avg_state_counts[:, 0]
@@ -285,6 +290,7 @@ d_counts = state_counts[:, 4]
 # i_counts = avg_state_counts[:, 2]
 # r_counts = avg_state_counts[:, 3]
 # d_counts = avg_state_counts[:, 4]
+
 
 def plotting_function():
 
