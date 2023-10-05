@@ -122,6 +122,8 @@ def simulate():
     agents = []
     people_count = [0] * len(age_groups)
     deaths_by_ages = [0] * len(death_rates)
+
+
     # Empty list to append the average viral loads at each time step
     avg_viral_loads = []
     for i in range(num_agents):
@@ -191,15 +193,6 @@ def simulate():
         normalized_matrix = social_interaction_matrix / np.sum(social_interaction_matrix, axis=1, keepdims=True)
         row_sums = np.cumsum(normalized_matrix, axis=1)
 
-        # social_interaction_matrix = np.array([
-        #     [0.1, 0.05, 0.03, 0.01, 0.01, 0.005, 0.001],
-        #     [0.05, 0.1, 0.05, 0.03, 0.02, 0.01, 0.005],
-        #     [0.03, 0.05, 0.1, 0.05, 0.03, 0.02, 0.01],
-        #     [0.01, 0.03, 0.05, 0.1, 0.05, 0.03, 0.02],
-        #     [0.01, 0.02, 0.03, 0.05, 0.1, 0.05, 0.03],
-        #     [0.005, 0.01, 0.02, 0.03, 0.05, 0.1, 0.05],
-        #     [0.001, 0.005, 0.01, 0.02, 0.03, 0.05, 0.1]
-        # ]
 
         # Modify the interaction loop inside the simulation
         for _ in range(500):
@@ -289,7 +282,8 @@ def simulate():
     #     for agent_loads in viral_load_data:
     #         file.write(','.join(str(load) for load in agent_loads) + '\n')
 
-    return state_counts, agents, avg_viral_loads, state_dynamics_by_age, avg_viral_loads_by_age
+    return state_counts, agents, avg_viral_loads, state_dynamics_by_age, avg_viral_loads_by_age, \
+        viral_load_profiles_by_age
 
 # # Run simulation
 # state_counts, agents, avg_viral_loads, viral_load_data_by_agent = simulate()
@@ -305,18 +299,33 @@ def simulate():
 num_simulations = 1
 avg_state_counts = np.zeros((time_steps, 5))  # Initialize an array to accumulate state counts
 overall_avg_loads = []
+avg_state_dynamics_by_age = {age_group: [] for age_group in age_groups}
+avg_viral_load_by_age = [[] for _ in range(len(age_groups))]
+overall_avg_loads_by_age = []
 
 for simulation in range(num_simulations):
 
     # print(avg_viral_loads)
-    state_counts, agents, avg_viral_loads, state_dynamics_by_age, avg_viral_loads_by_age = simulate()
-    avg_state_counts += np.array(state_counts)
+    state_counts, agents, avg_viral_loads, state_dynamics_by_age, avg_viral_loads_by_age, viral_load_profiles_by_age\
+        = simulate()
 
+    avg_state_counts += np.array(state_counts)
     # Store the average viral loads at each time step for this simulation
     overall_avg_loads.append(avg_viral_loads)
+    for age_group in age_groups:
+        overall_avg_loads_by_age.append(avg_viral_loads_by_age)
+
+    # Accumulate state dynamics by age
+    for age_group in age_groups:
+        avg_state_dynamics_by_age[age_group].append(np.array(state_dynamics_by_age[age_group]))
 
 # Calculate the overall average viral load at each time step across all simulations
 overall_avg_viral_loads = np.mean(np.array(overall_avg_loads), axis=0)
+for age_group in age_groups:
+    overall_avg_viral_loads_by_age = np.mean(np.array(overall_avg_loads_by_age), axis=0)
+# Calculate the average state dynamics by age
+for age_group in age_groups:
+    avg_state_dynamics_by_age[age_group] = np.mean(np.array(avg_state_dynamics_by_age[age_group]), axis=0)
 
 # Extract individual state counts for plotting
 s_counts = avg_state_counts[:, 0]
@@ -378,7 +387,7 @@ def plotting_function():
 
     # Plot state dynamics for each age group and save to the folder
     for age_group in age_groups:
-        dynamics_data = state_dynamics_by_age[age_group]
+        dynamics_data = avg_state_dynamics_by_age[age_group]
         s_counts_age = [data[0] for data in dynamics_data]
         e_counts_age = [data[1] for data in dynamics_data]
         i_counts_age = [data[2] for data in dynamics_data]
@@ -403,7 +412,7 @@ def plotting_function():
 
     for age_group_index, age_group in enumerate(age_groups):
         plt.figure(figsize=(10, 8))
-        plt.plot(avg_viral_loads_by_age[age_group_index], label=f'Age Group {age_group}')
+        plt.plot(overall_avg_viral_loads_by_age[age_group_index], label=f'Age Group {age_group}', color='red')
         plt.xlabel('Time steps')
         plt.ylabel('Average Viral Load')
         plt.title(f'Average Viral Load for Age Group {age_group} Over Time')
@@ -414,5 +423,17 @@ def plotting_function():
         plt.savefig(avg_viral_loads_filepath)
         plt.close()
 
+        # Plot the viral load curves for each age group on the same plot with different colors
+    plt.figure(figsize=(10, 8))
+    for age_group_index, age_group in enumerate(age_groups):
+        plt.plot(step_count, overall_avg_viral_loads_by_age[age_group_index], label=f'Age Group {age_group}', alpha=0.7)
+    plt.xlabel('Time steps')
+    plt.ylabel('Average Viral Load')
+    plt.title('Average Viral Load Over Time by Age Group')
+    plt.xticks(rotation=45)
+    plt.yticks(rotation=45)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 plotting_function()
