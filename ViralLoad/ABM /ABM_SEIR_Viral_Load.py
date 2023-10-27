@@ -3,6 +3,7 @@ import random
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import csv
 
 # Define model parameters
 num_agents = 500  # Number of agents in the simulation
@@ -46,19 +47,23 @@ class Agent:
             if int(age_range[0]) <= self.age <= int(age_range[1]):
                 age_group_index = index
         self.immunosenescence_factor = immunosenescence_factors[age_group_index]
+        self.threshold1 = thresh1 + (random.random() - 0.5) * thresh1
+        self.threshold2 = thresh2 + (random.random() - 0.5) * thresh2
+        self.threshold3 = thresh3 + (random.random() - 0.5) * thresh3
+        self.viral_load_history = []
     def update_state(self, neighbors, deaths_by_ages):
         if self.state == 'S':
             self.days_in_compartment += 1
             # for neighbor in neighbors:
             #     if neighbor.state == 'I' and random.random() < infection_rate:
             #         self.viralload += random.random() / 3
-            if self.viralload > thresh1:
+            if self.viralload > self.threshold1:
                 self.state = 'E'
                 self.days_in_compartment = 0
         elif self.state == 'E':
             self.days_in_compartment += 1
             self.viralload += random.random() / 3
-            if self.days_in_compartment < latent_period and self.viralload > thresh2:
+            if self.days_in_compartment < latent_period and self.viralload > self.threshold2:
                 self.state = 'I'
                 self.days_in_compartment = 0
             elif self.days_in_compartment >= latent_period:
@@ -84,7 +89,7 @@ class Agent:
                 self.days_in_compartment = 0
                 # Increment deaths in the corresponding age group
                 deaths_by_ages[age_group_index] += 1
-            if self.viralload <= thresh3:
+            if self.viralload <= self.threshold3:
                 self.state = 'R'
                 self.days_in_compartment = 0
 
@@ -94,13 +99,15 @@ class Agent:
             self.days_in_compartment += 1
             self.viralload -= self.viralload
             # # ## Adds reinfectivity
-            # if self.viralload <= 0:
-            #     if self.immune_days >= immune_period:  # Check if the agent's immunity period is over
-            #         self.state = 'S'
-            #         self.days_in_compartment = 0
-            #         self.immune_days = 0    # Reset the immune days counter
-            #     else:
-            #         self.immune_days += 1
+            # if self.immune_days >= immune_period:  # Check if the agent's immunity period is over
+            #     self.state = 'S'
+            #     self.days_in_compartment = 0
+            #     self.immune_days = 0    # Reset the immune days counter
+            # else:
+            #     self.immune_days += 1
+            # Append the viral load to the history if it's nonzero
+        if self.viralload > 0:
+            self.viral_load_history.append(self.viralload)
 
     def get_state(self):
         return self.state
@@ -126,6 +133,8 @@ def simulate():
 
     # Empty list to append the average viral loads at each time step
     avg_viral_loads = []
+    # Initialize a list to store viral load data for each agent at each time step
+    viral_load_data_by_agent = []
     for i in range(num_agents):
         if i < num_infected:
             state = 'I'
@@ -143,12 +152,10 @@ def simulate():
 
         agent = Agent(state, viralload, age)
         agents.append(agent)
-
+        viral_load_data_by_agent.append([])
         # Increment the people count for the corresponding age group
         people_count[age_groups.index(age_group)] += 1
 
-    # Initialize a list to store viral load data for each agent at each time step
-    # viral_load_data_by_agent = [[] for _ in range(num_agents)]
     # Run simulation
     state_counts = []
     state_dynamics_by_age = {age_group: [] for age_group in age_groups}  # Dictionary of state dynamics in each age group
@@ -157,14 +164,17 @@ def simulate():
     viral_load_data_by_age = [[] for _ in range(len(age_groups))]
     # Create a list to store the average viral loads for each age group at each time step
     avg_viral_loads_by_age = [[] for _ in range(len(age_groups))]
+    # Create a list to store the viral load history for each agent
+    viral_load_histories = []
+    # Create lists to store maximum viral loads for each age group
+    max_viral_loads_by_age = [0.0] * len(age_groups)
+    # Create a list to store viral load data for each time step and each age group
+    viral_load_data_by_age_and_time = [[[] for _ in range(time_steps)] for _ in range(len(age_groups))]
     for t in range(time_steps):
         # Update agent states
         for agent in agents:
             neighbors = [neighbor for neighbor in agents if neighbor != agent]
             agent.update_state(neighbors, deaths_by_ages)
-
-            # # Append viral load data for each agent at the current time step
-            # viral_load_data_by_agent[agents.index(agent)].append(agent.viralload)
 
             # Get the age group of the current agent
             age_group_index = None
@@ -177,7 +187,6 @@ def simulate():
                 # Append viral load data to corresponding age group list
                 viral_load_data_by_age[age_group_index].append(agent.viralload)
                 # print(viral_load_data_by_age)
-
 
         # Create a social interaction matrix based on age group
         social_interaction_matrix = np.array([
@@ -192,7 +201,6 @@ def simulate():
         # Normalize the social interaction matrix and compute rolling sums of the rows
         normalized_matrix = social_interaction_matrix / np.sum(social_interaction_matrix, axis=1, keepdims=True)
         row_sums = np.cumsum(normalized_matrix, axis=1)
-
 
         # Modify the interaction loop inside the simulation
         for _ in range(500):
@@ -214,16 +222,16 @@ def simulate():
                 agent2 = random.choice(agents_in_age_group2)
 
                 # Check if one agent is susceptible and the other is infected
-                if agent1.get_state() == 'S' and agent2.get_state() == 'I':
-                    susceptible_agent = agent1
+                if (agent1.get_state() == 'S' or agent1.get_state() == 'E') and agent2.get_state() == 'I':
+                    susceptible_exposed_agent = agent1
                     infected_agent = agent2
-                elif agent1.get_state() == 'I' and agent2.get_state() == 'S':
-                    susceptible_agent = agent2
+                elif agent1.get_state() == 'I' and (agent2.get_state() == 'S' or agent2.get_state() == 'E'):
+                    susceptible_exposed_agent = agent2
                     infected_agent = agent1
                 else:
                     continue
 
-                susceptible_agent.viralload += infected_agent.viralload / 3
+                susceptible_exposed_agent.viralload += infected_agent.viralload / 3
 
         # Record state counts
         s_count = sum([1 for agent in agents if agent.get_state() == 'S'])
@@ -254,6 +262,9 @@ def simulate():
                                    agent.get_age_group() == age_group and agent.get_state() != 'D']
             if agents_in_age_group:
                 avg_load_at_time_step = sum(agent.viralload for agent in agents_in_age_group) / len(agents_in_age_group)
+                # Update the maximum viral load for the age group
+                max_viral_loads_by_age[age_group_index] = max(max_viral_loads_by_age[age_group_index],
+                                                              avg_load_at_time_step)
             else:
                 avg_load_at_time_step = 0  # Handle the case where there are no agents in the age group
             avg_viral_loads_by_age[age_group_index].append(avg_load_at_time_step)
@@ -261,6 +272,11 @@ def simulate():
         # Append viral load data for each agent at the current time step
         for i, agent in enumerate(agents):
             viral_load_data[i].append(agent.viralload)
+            viral_load_data_by_agent[i].append(agent.viralload)
+            # Collect the viral load history for all agents
+            viral_load_histories.append(agent.viral_load_history)
+            age_group_index = age_groups.index(agent.get_age_group())
+            viral_load_data_by_age_and_time[age_group_index][t].append(agent.viralload)
 
     age_df = pd.DataFrame({'Age Group': age_groups, 'People': people_count, 'Deaths': deaths_by_ages})
     print(age_df)
@@ -270,20 +286,38 @@ def simulate():
         area_under_curve = np.trapz(age_viral_loads)
         viral_load_areas.append(area_under_curve)
 
-    # Print the areas under the viral load curves for each age group
-    print("Areas under viral load curves:", viral_load_areas)
+    # Print the areas under the viral load curves for each age group and max avg viral load
+    # print("Areas under viral load curves:", viral_load_areas)
+    for age_group_index, age_group in enumerate(age_groups):
+        print(f"Maximum Average Viral Load for {age_group}: {max_viral_loads_by_age[age_group_index]}")
 
     #     # Print ages of all agents
     # for i, agent in enumerate(agents):
     #     print(f"Agent {i + 1} age: {agent.get_age()}")
 
-    # # Write viral load data to a file
-    # with open('viral_load.csv', 'w') as file:
-    #     for agent_loads in viral_load_data:
-    #         file.write(','.join(str(load) for load in agent_loads) + '\n')
+    # Create a directory to store age group-specific data
+    viral_load_data_dir = "Viral_Load_Data"
+    if not os.path.exists(viral_load_data_dir):
+        os.mkdir(viral_load_data_dir)
+    # Write viral load data to a file
+    with open(os.path.join(viral_load_data_dir, 'viral_load.csv'), 'w') as file:
+        for agent_loads in viral_load_data:
+            file.write(','.join(str(load) for load in agent_loads) + '\n')
 
-    return state_counts, agents, avg_viral_loads, state_dynamics_by_age, avg_viral_loads_by_age, \
-        viral_load_profiles_by_age
+    # Modify the code to create separate CSV files for each age group
+    for age_group_index, age_group in enumerate(age_groups):
+        age_group_file_path = os.path.join(viral_load_data_dir, f'viral_load_age_{age_group}.csv')
+        age_group_data = viral_load_data_by_age_and_time[age_group_index]
+        # Transpose the data for this age group
+        transposed_data = list(map(list, zip(*age_group_data)))
+        with open(age_group_file_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            for i, agent_data in enumerate(transposed_data):
+                writer.writerow(agent_data)  # Write agent ID and viral load data
+
+    return state_counts, agents, avg_viral_loads, state_dynamics_by_age, avg_viral_loads_by_age, viral_load_data_by_age, \
+        viral_load_histories
+
 
 # # Run simulation
 # state_counts, agents, avg_viral_loads, viral_load_data_by_agent = simulate()
@@ -306,8 +340,8 @@ overall_avg_loads_by_age = []
 for simulation in range(num_simulations):
 
     # print(avg_viral_loads)
-    state_counts, agents, avg_viral_loads, state_dynamics_by_age, avg_viral_loads_by_age, viral_load_profiles_by_age\
-        = simulate()
+    state_counts, agents, avg_viral_loads, state_dynamics_by_age, avg_viral_loads_by_age, viral_load_data_by_age, \
+        viral_load_histories = simulate()
 
     avg_state_counts += np.array(state_counts)
     # Store the average viral loads at each time step for this simulation
@@ -323,6 +357,7 @@ for simulation in range(num_simulations):
 overall_avg_viral_loads = np.mean(np.array(overall_avg_loads), axis=0)
 for age_group in age_groups:
     overall_avg_viral_loads_by_age = np.mean(np.array(overall_avg_loads_by_age), axis=0)
+
 # Calculate the average state dynamics by age
 for age_group in age_groups:
     avg_state_dynamics_by_age[age_group] = np.mean(np.array(avg_state_dynamics_by_age[age_group]), axis=0)
@@ -351,7 +386,7 @@ def plotting_function():
     plt.grid(True)
     plt.show()
 
-    ## Collect time total steps in a vector
+    # Collect time total steps in a vector
     step_count = []
     for steps in range(time_steps):
         step_count.append(steps)
@@ -435,5 +470,39 @@ def plotting_function():
     plt.legend()
     plt.grid(True)
     plt.show()
+
+    # Calculate and plot the average viral load profile for each age group
+    for age_group in age_groups:
+        age_group_histories = []
+
+        for agent in agents:
+
+            if agent.get_age_group() == age_group:
+                age_group_histories.append(agent.viral_load_history)
+
+        if age_group_histories:
+            max_history_length = max(len(history) for history in age_group_histories)
+            age_group_histories_padded = np.array(
+                [history + [0] * (max_history_length - len(history)) for history in age_group_histories]
+            )
+            viral_load_profile_by_age_group = np.nanmean(age_group_histories_padded, axis=0)
+            plt.figure(figsize=(10, 8))
+            plt.plot(viral_load_profile_by_age_group, label=f'Age Group {age_group}', color='green')
+            plt.xlabel('Time steps')
+            plt.ylabel('Average Viral Load Profile')
+            plt.title(f'Average Viral Load Profile for Age Group {age_group}')
+            plt.legend()
+            plt.grid(True)
+            plt.savefig(os.path.join(plotting_dir, f'viral_load_profile_age_group_{age_group}.png'))
+            plt.close()
+
+            plt.plot(viral_load_profile_by_age_group, label=f'Age Group {age_group}')
+    plt.xlabel('Time steps')
+    plt.ylabel('Average Viral Load Profile')
+    plt.title('Average Viral Load Profiles for All Age Groups')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(os.path.join(plotting_dir, f'Average Viral Load Profiles for All Age Groups.png'))
+
 
 plotting_function()
