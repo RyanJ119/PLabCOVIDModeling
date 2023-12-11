@@ -17,15 +17,17 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     gamma = problem.gamma
     sigma = 1/60
     delta = problem.delta
-    cost_of_lockdown=70
-    cost_of_lockdown_old=100
-    cost_of_lockdown_school = 60
+    cost_of_lockdown=700
+    cost_of_lockdown_old=70
+    cost_of_lockdown_school = 4500
     cost_per_death= 1500000
+    delta1 = 1#4/5
+    delta2 = 1#2/3
     u_min= problem.R0 * gamma
     u_max= problem.R0 * gamma  # bounds on u: if u_min=u_max then no lockdown
     upper_bound = inf
-    w_min=0
-    w_max=1  ## w_max is the upper threshold on w(t) = \sum_{j=1}^6 w_j(t)  (maximal number of vaccines per day)
+    w_min=.1 #w_min is the maximum lockdown 
+    w_max=1  ## w_max is the minimum lockdown 
     beta = problem.R0 * gamma
     death_rates = problem.death_rates
     initial_S = problem.initial_S
@@ -62,15 +64,21 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     for i in range(rows):
         for j in range(columns):
+            mat_old[i][j] = mat_old[i][j]*delta1
             if i<rows-1:
                 if j<columns-1:
                     mat_old[i][j]=0         #mat_old is the interactions that the elderly have with all other populations
                  
     mat_school=a.copy()
     
-                
+    #print(   sum2((sum1( mat_old) / sum1(a)) *tab_N )*cost_of_lockdown_old*(1-w[:,0]))
+    #print(sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-w[:,0])))
+    
+    
+   # print((sum1( sum2(1-w[:,0]) *cost_of_lockdown_old )*sum1(tab_N[0,10])))
     for i in range(rows):
         for j in range(columns):
+            mat_school[i][j] = mat_school[i][j]*delta2
             if (i != 0 and i!=1 and i!=2 and i!=3 ) or (j != 0 and j!=1 and j!=2 and j!=3):
                 mat_school[i][j]=0             #mat_school is the interactions children have with each other
   
@@ -109,13 +117,15 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     
     ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
-    gg = vertcat(cont_dyn, sum2(w))
-    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_min * np.ones(N+1))   # w_min=0
-    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max * np.ones(N+1))
+    gg = vertcat(cont_dyn, sum2(u))
+    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), u_min * np.ones(N+1))   # w_min=0
+    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), u_max * np.ones(N+1))
     #print(sum1(tab_N[0,0:4]))
     ## Cost
     cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
-    cost_lockdown = (sum1( sum2(1-w[:,0]) *cost_of_lockdown_old )*sum1(tab_N[0,10]))+(sum1( sum2(1-w[:,1]) *cost_of_lockdown_school )*sum1(tab_N[0,0:4]))+(sum1( sum2(1-w[:,2]) *cost_of_lockdown )*sum1(tab_N[0,4:9]))
+   # cost_lockdown = (sum1( sum2(1-w[:,0]) *cost_of_lockdown_old )*sum1(tab_N[0,10]))+                (sum1( sum2(1-w[:,1]) *cost_of_lockdown_school )*sum1(tab_N[0,0:4]))+(sum1( sum2(1-w[:,2]) * cost_of_lockdown )*sum1(tab_N[0,4:9]))
+    #cost_lockdown = sum2(sum1( (mat_old) / sum1(a))*tab_N )*cost_of_lockdown_old*(1-w[:,0]) + sum2(sum1( (mat_school) / sum1(a))*tab_N )*cost_of_lockdown_school*(1-w[:,1]) +         sum2(sum1( (matrix4) / sum1(a))*tab_N )*cost_of_lockdown*(1-w[:,2])
+    cost_lockdown=sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-w[:,0])) + sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(1-w[:,1]))+ sum2((sum1( matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(1-w[:,2]))
     cost_all=cost_deaths+cost_lockdown
 
     ## Initial guess
@@ -126,7 +136,9 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         init_E=mtimes(np.ones((N+1,1)), 2/3*initial_E)
         init_I=mtimes(np.ones((N+1,1)), 2/3*initial_I)
         init_R=mtimes(np.ones((N+1,1)), 2/3*initial_R)
-        init_u=(u_min+u_max)/2 * np.ones(N+1)
+        
+        
+        init_u=(u_min+u_max)/4 * np.ones(N+1)
         ## [Manu] I have updated the rough way here to initialize w:
         init_w=.5 * (np.ones((N+1,numControls)))
     #     init_w[:, 0:1] = 0

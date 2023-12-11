@@ -17,6 +17,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     delta = problem.delta
     cost_of_lockdown=problem.cost_lockdown
     cost_per_death=1500000
+    delta1 = 4/5
+    delta2 = 2/3
     u_min= 0
     u_max= 1  # bounds on u: if u_min=u_max then no lockdown
     beta = problem.R0 * gamma
@@ -37,6 +39,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     for i in range(rows):
         for j in range(columns):
+            matrix2[i][j] = matrix2[i][j]*delta1
             if i<rows-1:
                 if j<columns-1:
                     matrix2[i][j]=0         #Matrix2 is the interactions that the elderly have with all other populations
@@ -46,6 +49,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
                 
     for i in range(rows):
         for j in range(columns):
+            matrix2[i][j] = matrix2[i][j]*delta2
             if (i != 0 and i!=1 and i!=2 ) or (j != 0 and j!=1 and j!=2):
                 matrix3[i][j]=0             #Matrix3 is the interactions children have with each other
   
@@ -146,6 +150,12 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         init_E=mtimes(np.ones((N+1,1)), 2/3*initial_E)
         init_I=mtimes(np.ones((N+1,1)), 2/3*initial_I)
         init_R=mtimes(np.ones((N+1,1)), 2/3*initial_R)
+        
+        
+        init_S=mtimes(np.ones((N+1,1)), initial_S)
+        init_E=mtimes(np.zeros((N+1,1)), 2/3*initial_E)
+        init_I=mtimes(np.ones((N+1,1)), 0*initial_I+1)
+        init_R=mtimes(np.zeros((N+1,1)), 2/3*initial_R)
 
         #init_V=mtimes(np.ones((N+1,1)), 2/3*initial_V)
  

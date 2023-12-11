@@ -41,9 +41,42 @@ def generate_abstact_plotU(
 ):
     t = np.linspace(0, problem.time_horizon, problem.N + 1)
     plt.rcParams["figure.figsize"] = (8, 8)
-
     plt.plot(t, 1-series[:, 0], label="Lockdown Old")
+    plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
+    plt.ylim(bottom=0)  # adjust the bottom leaving top unchanged
+    plt.title(
+        f"{name} R0{problem.R0} PE{percentage_essential} Cost: {cost}"
+    )
+    plt.legend()
+    plt.savefig(
+        os.path.join(directory_path, f"Old-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
+        dpi=300,
+        bbox_inches="tight",
+    )
+    if show:
+        plt.show()
+    plt.close()
+    
+    t = np.linspace(0, problem.time_horizon, problem.N + 1)
+    plt.rcParams["figure.figsize"] = (8, 8)
     plt.plot(t, 1-series[:, 1], label="Lockdown Schools")
+    plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
+    plt.ylim(bottom=0)  # adjust the bottom leaving top unchanged
+    plt.title(
+        f"{name} R0{problem.R0} PE{percentage_essential} Cost: {cost}"
+    )
+    plt.legend()
+    plt.savefig(
+        os.path.join(directory_path, f"School-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
+        dpi=300,
+        bbox_inches="tight",
+    )
+    if show:
+        plt.show()
+    plt.close()
+    
+    t = np.linspace(0, problem.time_horizon, problem.N + 1)
+    plt.rcParams["figure.figsize"] = (8, 8)
     plt.plot(t, 1-series[:, 2], label="Lockdown Public")
     plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
     plt.ylim(bottom=0)  # adjust the bottom leaving top unchanged
@@ -52,7 +85,7 @@ def generate_abstact_plotU(
     )
     plt.legend()
     plt.savefig(
-        os.path.join(directory_path, f"beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
+        os.path.join(directory_path, f"GenPop-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
         dpi=300,
         bbox_inches="tight",
     )
