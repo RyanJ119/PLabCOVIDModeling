@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Dec 13 14:09:22 2023
+
+@author: ryanweightman
+"""
+
 from casadi import *
 import matplotlib.pyplot as plt
 import seaborn as sb
@@ -20,7 +28,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     cost_of_lockdown=10
     cost_of_lockdown_old=50
     cost_of_lockdown_school = 10
-    cost_per_death= 0
+    cost_per_death= 1500000
     delta1 = 1#4/5
     delta2 = 1#2/3
     u_min= problem.R0 * gamma
@@ -91,7 +99,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     dRdt = gamma * I   #- sigma*R
 
- 
+
     
     cont_dynS = S[1:N+1,:] - S[0:N,:] - T/(2*N) * (dSdt[0:N,:] + dSdt[1:N+1,:])
     cont_dynE = E[1:N+1,:] - E[0:N,:] - T/(2*N) * (dEdt[0:N,:] + dEdt[1:N+1,:])
@@ -109,10 +117,12 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     
     ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
-    gg = vertcat(cont_dyn, sum2(w))
-    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_min * np.ones(N+1))   # w_min=0
-    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max * np.ones(N+1))
-
+    gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
+    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_min * np.ones(3*(N+1)))   # w_min=0
+    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max * np.ones(3*(N+1)))
+    print(upper_bound_gg)
+    #print(upper_bound_gg)
+    #print(sum2(w))
     ## Cost
     cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
 
@@ -174,7 +184,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     lower_bound_w = w_min*np.ones((N+1,numControls))
     upper_bound_w = w_max*np.ones((N+1,numControls))
     #upper_bound_w[:, 0:2] = 0   ## [Manu] this constraint means that we switch off the two first controls, right?
-
+    #print(upper_bound_w)
     lower_bound_xu = vertcat(
         reshape(lower_bound_S,-1,1),
         reshape(lower_bound_E,-1,1),

@@ -5,6 +5,7 @@ from plotting import print_heat_map
 from simulator import simulate
 #from controller import solve_control_problem
 from ControllerCanibalizedW import solve_control_problem
+from controllerV2 import solve_control_problem
 import csv
 
 import time
@@ -41,11 +42,11 @@ def main():
     )
     cost_lockdown = 70
     num_age_groups = len(death_rates[0])
-    time_horizon = 400
+    time_horizon = 180
     #matrices = [(0.25, "../data/InteractionMatrix_beta_0_25.csv"), (0.5, "../data/InteractionMatrix_beta_0_5.csv"), (0.75,  "../data/InteractionMatrix_beta_0_75.csv")]
-    matrices = [(0.25,  "../data/InteractionMatrix_beta_0_75.csv")]
+    matrices = [(0.75,  "../data/InteractionMatrix_beta_0_75.csv")]
     #R0s = [ 1.0, 1.1, 1.2]
-    R0s = [1.1]
+    R0s = [1.2]
    # percentages_essential = [0.24, 0.34, 0.44]
     percentages_essential = [0]
     ordering = np.flip(list(range(num_age_groups)))
