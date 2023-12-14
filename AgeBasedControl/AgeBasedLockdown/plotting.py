@@ -39,13 +39,14 @@ def generate_abstact_plot(
 def generate_abstact_plotU(
         directory_path, name, cost, series, beta, percentage_essential, problem, show=False
 ):
+    plt.rcParams.update({'font.size': 22})
     t = np.linspace(0, problem.time_horizon, problem.N + 1)
     plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 0], label="Lockdown Old")
+    plt.plot(t, series[:, 0])
     plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
     plt.ylim(bottom=-.5)  # adjust the bottom leaving top unchanged
     plt.title(
-        f"{name} R0{problem.R0} PE{percentage_essential} Cost: {cost}"
+        f"Lockdown of Elderly R0-{problem.R0}"
     )
     plt.legend()
     plt.savefig(
@@ -59,11 +60,11 @@ def generate_abstact_plotU(
     
     t = np.linspace(0, problem.time_horizon, problem.N + 1)
     plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 1], label="Lockdown Schools")
+    plt.plot(t, series[:, 1])
     plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
     plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
     plt.title(
-        f"{name} R0{problem.R0} PE{percentage_essential} Cost: {cost}"
+        f"Lockdown of School Age R0{-problem.R0}"
     )
     plt.legend()
     plt.savefig(
@@ -78,11 +79,11 @@ def generate_abstact_plotU(
     
     t = np.linspace(0, problem.time_horizon, problem.N + 1)
     plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 2], label="Lockdown Public")
+    plt.plot(t, series[:, 2])
     plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
     plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
     plt.title(
-        f"{name} R0{problem.R0} PE{percentage_essential} Cost: {cost}"
+        f"Lockdowng of Public R0{problem.R0} "
     )
     plt.legend()
     plt.savefig(
@@ -95,23 +96,23 @@ def generate_abstact_plotU(
     plt.close()
 
 
-    t = np.linspace(0, problem.time_horizon, problem.N + 1)
-    plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 0]+(series[:, 2]+series[:, 1]), label="public plus schools")
-    plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
-    plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
-    plt.title(
-        f"{name} R0{problem.R0} PE{percentage_essential} Cost: {cost}"
-    )
-    plt.legend()
-    plt.savefig(
-        os.path.join(directory_path, f"public_Plus_School-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
-    if show:
-        plt.show()
-    plt.close()
+    # t = np.linspace(0, problem.time_horizon, problem.N + 1)
+    # plt.rcParams["figure.figsize"] = (8, 8)
+    # plt.plot(t, series[:, 0]+(series[:, 2]+series[:, 1]), label="public plus schools")
+    # plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
+    # plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
+    # plt.title(
+    #     f"{name} R0{problem.R0} PE{percentage_essential} Cost: {cost}"
+    # )
+    # plt.legend()
+    # plt.savefig(
+    #     os.path.join(directory_path, f"public_Plus_School-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
+    #     dpi=300,
+    #     bbox_inches="tight",
+    # )
+    # if show:
+    #     plt.show()
+    # plt.close()
     
 def print_heat_map(
          directory_path, w, S, E, I, R, beta, percentage_essential, problem, show=False

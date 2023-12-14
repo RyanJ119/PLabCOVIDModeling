@@ -4,7 +4,7 @@ from plotting import generate_all_plots
 from plotting import print_heat_map
 from simulator import simulate
 #from controller import solve_control_problem
-from ControllerCanibalizedW import solve_control_problem
+#from ControllerCanibalizedW import solve_control_problem
 from controllerV2 import solve_control_problem
 import csv
 
@@ -93,7 +93,7 @@ def main():
                         contact_matrix,
                         death_rates,
                         cost_lockdown,
-                        60
+                        80
                     )
                    
         
