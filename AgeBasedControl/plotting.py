@@ -16,13 +16,9 @@ def generate_abstact_plot(
     plt.plot(t, series[:, 0], label="Age group 1")
     plt.plot(t, series[:, 1], label="Age group 2")
     plt.plot(t, series[:, 2], label="Age group 3")
-    #plt.plot(t, series[:, 3], label="Age group 3 Essential")
     plt.plot(t, series[:, 4], label="Age group 4")
-    #plt.plot(t, series[:, 5], label="Age group 4 Essential")
     plt.plot(t, series[:, 6], label="Age group 5")
-    #plt.plot(t, series[:, 7], label="Age group 5 Essential")
     plt.plot(t, series[:, 8], label="Age group 6")
-    #plt.plot(t, series[:, 9], label="Age group 6 Essential")
     plt.plot(t, series[:, 10], label="Age group 7", color='black')
     plt.title(
         f"{name}"
@@ -60,7 +56,6 @@ def generate_abstact_plotU(
         plt.show()
     plt.close()
     
-    #t = np.linspace(0, problem.time_horizon-50, problem.N + 1)
     plt.rcParams["figure.figsize"] = (8, 8)
     plt.plot(t, series[:, 1])
     plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
@@ -79,7 +74,7 @@ def generate_abstact_plotU(
     plt.close()
     
     
-    #t = np.linspace(0, problem.time_horizon, problem.N + 1)
+
     plt.rcParams["figure.figsize"] = (8, 8)
     plt.plot(t, series[:, 2])
     plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
@@ -97,24 +92,6 @@ def generate_abstact_plotU(
         plt.show()
     plt.close()
 
-
-    # t = np.linspace(0, problem.time_horizon, problem.N + 1)
-    # plt.rcParams["figure.figsize"] = (8, 8)
-    # plt.plot(t, series[:, 0]+(series[:, 2]+series[:, 1]), label="public plus schools")
-    # plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
-    # plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
-    # plt.title(
-    #     f"{name} R0{problem.R0} PE{percentage_essential} Cost: {cost}"
-    # )
-    # plt.legend()
-    # plt.savefig(
-    #     os.path.join(directory_path, f"public_Plus_School-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
-    #     dpi=300,
-    #     bbox_inches="tight",
-    # )
-    # if show:
-    #     plt.show()
-    # plt.close()
     
 def print_heat_map(
          directory_path, w, S, E, I, R, beta, percentage_essential, problem, show=False
@@ -164,9 +141,6 @@ def print_heat_map(
 
 
 def generate_all_plots(directory_path, w, S, E, I, R,cost, beta, percentage_essential,cost_of_lockdown, problem, show=False):
-    #cost_deaths = np.sum(R[-1, :] * problem.death_rates)
-    #cost_lockdown= np.sum(((1-u))*cost_of_lockdown*S[-1, :])
-    #cost=1 #cost_deaths+cost_lockdown
     generate_abstact_plotU(
         directory_path, "Lockdown Policy", cost, w, beta, percentage_essential, problem, show
     )
