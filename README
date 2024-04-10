@@ -1,4 +1,5 @@
-This repository serves as a hub for all COVID-19 Related modeling efforts performed by the Piccoli Lab at Rutgers University–Camden. Included are models for 
+This repository serves as a hub for all Epidemiology Related modeling efforts performed by the Piccoli Lab at Rutgers University–Camden. Included are models for 
 1. Age Based SIR Coupled With PDE's 
 2. Viral Load driven Agent based Model
 3. MDE-ODE viral mutation model
+4. A model adapted for Dengue Fever
