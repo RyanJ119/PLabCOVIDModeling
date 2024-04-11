@@ -1,7 +1,8 @@
 import numpy as np
-from utils import transform_to_have_essential_workers, read_data_from_csv, make_result_directory_for_simulation, Problem
+from constants import data, state_id, death_rates, num_age_groups, matrices, time_horizon, cost_lockdown, R0s, percentages_essential
+from utils import transform_to_have_essential_workers, make_result_directory_for_simulation, Problem
 from plotting import generate_all_plots
-from plotting import print_heat_map
+#from plotting import print_heat_map
 #from simulator import simulate
 from controllerV2 import solve_control_problem
 import csv
@@ -9,32 +10,9 @@ import time
 
 
 def main():
-    state_id = "NJ"
-    data = read_data_from_csv("../data/covid19_data_v1.csv")
+    """Defines the Model and computes the optimal control associated"""
     state_data = data[state_id]
-    death_rates = np.array(
-        [
-            [
-                0.00016,
-                0.00016,
-                0.00006,
-                0.00006,
-                0.00007,
-                0.00007,
-                0.00229,
-                0.00229,
-                0.01915,
-                0.01915,
-                0.13527,
-            ]
-        ]
-    )
-    cost_lockdown = 70
-    num_age_groups = len(death_rates[0])
-    time_horizon = 180
-    matrices = [(0.75,  "../data/InteractionMatrix_beta_0_75.csv")]
-    R0s = [1.7]
-    percentages_essential = [0]
+
     ordering = np.flip(list(range(num_age_groups)))
     max_num_vaccines_per_day = np.sum(state_data["initial_S"]) * 0.6 / time_horizon
 
