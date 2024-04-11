@@ -46,6 +46,8 @@ class ProblemSolver:
 
         self.tab_N= problem.population
         self.num_age_groups = self.tab_N.shape[1]
+        
+        self.numControls # To be initialized in the SubClasses
 
         self.Ntot=sum2(self.tab_N)
         
@@ -54,7 +56,7 @@ class ProblemSolver:
         # Must be defined in subclasses according to the choice of the controls
         return None
     
-    def model_dynamics(self,S,E,I,R,interaction_matrices,controls):
+    def model_dynamics(self,dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices,controls):
         """Defines the dynamic of the model"""
         # Same thing
         return None
@@ -64,7 +66,7 @@ class ProblemSolver:
         # Same thing
         return None
     
-    def solve_control_problem(self, max_num_vaccines_per_day, init_S=None,
+    def solve_control_problem(self, init_S=None,
                             init_E=None, init_I=None, init_R=None, init_V=None,
                             init_w=None, init_u=None):
         ## Declaration of variables
@@ -87,7 +89,7 @@ class ProblemSolver:
 
 
         ## Discretization of dynamics with implicit RK2
-        dSdt, dEdt, dIdt, dRdt = self.model_dynamics(S,E,I,R,interaction_matrices, w)
+        dSdt,dEdt,dIdt,dRdt=self.model_dynamics(dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices, w)
 
         cont_dynS = S[1:self.N+1,:] - S[0:self.N,:] - self.T/(2*self.N) * (dSdt[0:self.N,:] + dSdt[1:self.N+1,:])
         cont_dynE = E[1:self.N+1,:] - E[0:self.N,:] - self.T/(2*self.N) * (dEdt[0:self.N,:] + dEdt[1:self.N+1,:])

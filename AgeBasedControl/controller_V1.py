@@ -6,10 +6,10 @@ from utils import Problem
 
 class ProblemSolver1(ProblemSolver):
     def __init__(self, problem: Problem):
-        super().__init__(problem)
         self.tau1 = 1#4/5
         self.tau2 = 1#2/3
         self.numControls = 3
+        super().__init__(problem)
     
     def interaction_matrices(self):
         """Define interaction matrices"""
@@ -36,9 +36,13 @@ class ProblemSolver1(ProblemSolver):
             
         return [mat_old, mat_school, matrix4]
     
-    def model_dynamics(self,S,E,I,R,interaction_matrices,controls):
+    def model_dynamics(self,dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices,controls):
         """Defines the dynamic of the model"""
-        return ( -1*( ((1-controls[:,0]) * self.beta * S * (mtimes(I,interaction_matrices[0])) ) +((1-controls[:,1]) * self.beta * S * (mtimes(I,interaction_matrices[1]))) +((1-controls[:,2]) * self.beta * S * (mtimes(I,interaction_matrices[2]))) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) ), ( ( ((1-controls[:,0]) * self.beta * S * (mtimes(I,interaction_matrices[0])))  + ((1-controls[:,1]) * self.beta * S * (mtimes(I,interaction_matrices[1]))) +((1-controls[:,2]) * self.beta * S * (mtimes(I,interaction_matrices[2])) ))/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) )  - self.delta * E, self.delta * E - self.gamma * I, self.gamma * I
+        dSdt=( -1*( ((1-controls[:,0]) * self.beta * S * (mtimes(I,interaction_matrices[0])) ) +((1-controls[:,1]) * self.beta * S * (mtimes(I,interaction_matrices[1]))) +((1-controls[:,2]) * self.beta * S * (mtimes(I,interaction_matrices[2]))) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) )
+        dEdt=( ( ((1-controls[:,0]) * self.beta * S * (mtimes(I,interaction_matrices[0])))  + ((1-controls[:,1]) * self.beta * S * (mtimes(I,interaction_matrices[1]))) +((1-controls[:,2]) * self.beta * S * (mtimes(I,interaction_matrices[2])) ))/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) )  - self.delta * E
+        dIdt=self.delta * E - self.gamma * I
+        dRdt=self.gamma * I
+        return dSdt,dEdt,dIdt,dRdt
         
     def cost(self, I, R, interaction_matrices,controls):
         """Defines the cost function"""
