@@ -4,10 +4,8 @@ from utils import transform_to_have_essential_workers, make_result_directory_for
 from plotting import generate_all_plots
 #from plotting import print_heat_map
 #from simulator import simulate
-from controllerV2 import solve_control_problem
+from controller_V1 import ProblemSolver1
 import csv
-import time
-
 
 def main():
     """Defines the Model and computes the optimal control associated"""
@@ -60,13 +58,9 @@ def main():
                         80
                     )
 
-
-
-
-
-
-
-                    S, E, I, R, w, cost = solve_control_problem(problem, max_num_vaccines_per_day)
+                    model=ProblemSolver1(problem)
+                    
+                    S, E, I, R, w, cost = model.solve_control_problem(max_num_vaccines_per_day)
                     dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")
                     print('deaths:')
                     print(sum(sum(np.array(R)[-1,:]*death_rates)))
