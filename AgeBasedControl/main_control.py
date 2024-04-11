@@ -5,7 +5,6 @@ from plotting import print_heat_map
 #from simulator import simulate
 from controllerV2 import solve_control_problem
 import csv
-
 import time
 
 

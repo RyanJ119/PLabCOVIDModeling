@@ -1,0 +1,7 @@
+numpy
+matplotlib
+pandas
+csv
+time
+seaborn
+casadi
