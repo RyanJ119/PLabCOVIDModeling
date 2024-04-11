@@ -51,7 +51,7 @@ def main():
                     )
 
                     model=ProblemSolver1(problem)
-                    
+
                     S, E, I, R, w, cost = model.solve_control_problem()
                     dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")
                     print('deaths:')

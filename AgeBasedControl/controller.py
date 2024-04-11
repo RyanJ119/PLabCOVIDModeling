@@ -46,26 +46,26 @@ class ProblemSolver:
 
         self.tab_N= problem.population
         self.num_age_groups = self.tab_N.shape[1]
-        
+
         self.numControls # To be initialized in the SubClasses
 
         self.Ntot=sum2(self.tab_N)
-        
+
     def interaction_matrices(self):
         """Define interaction matrices"""
         # Must be defined in subclasses according to the choice of the controls
         return None
-    
+
     def model_dynamics(self,dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices,controls):
         """Defines the dynamic of the model"""
         # Same thing
         return None
-    
+
     def cost(self, I, R, interaction_matrices,controls):
         """Defines the cost function"""
         # Same thing
         return None
-    
+
     def solve_control_problem(self, init_S=None,
                             init_E=None, init_I=None, init_R=None, init_V=None,
                             init_w=None, init_u=None):
@@ -110,9 +110,9 @@ class ProblemSolver:
         gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
         lower_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), self.w_min * np.ones(3*(self.N+1)))   # w_min=0
         upper_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), self.w_max * np.ones(3*(self.N+1)))
-        
+
         cost_all = self.cost(I, R, interaction_matrices,w)
-        
+
 
         ## Initial guess
         if init_S is None:
