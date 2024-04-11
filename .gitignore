@@ -1,0 +1,10 @@
+results/opt_control_NJ_beta0.75_R01.7_PE0/beta-0.75-R0-1.7-PE-0-Recovered Per Day.png
+results/opt_control_NJ_beta0.75_R01.7_PE0/beta-0.75-R0-1.7-PE-0-Susceptible Per Day.png
+results/opt_control_NJ_beta0.75_R01.7_PE0/School-beta-0.75-R0-1.7-PE-0-Lockdown Policy.png
+results/opt_control_NJ_beta0.75_R01.7_PE0/Old-beta-0.75-R0-1.7-PE-0-Lockdown Policy.png
+results/opt_control_NJ_beta0.75_R01.7_PE0/GenPop-beta-0.75-R0-1.7-PE-0-Lockdown Policy.png
+results/opt_control_NJ_beta0.75_R01.7_PE0/beta-0.75-R0-1.7-PE-0-Infected Per Day.png
+results/opt_control_NJ_beta0.75_R01.7_PE0/beta-0.75-R0-1.7-PE-0-Exposed Per Day.png
+AgeBasedControl/__pycache__/utils.cpython-311.pyc
+AgeBasedControl/__pycache__/plotting.cpython-311.pyc
+AgeBasedControl/__pycache__/controllerV2.cpython-311.pyc
