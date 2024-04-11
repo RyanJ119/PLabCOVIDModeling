@@ -32,7 +32,7 @@ def generate_abstact_plot(
     if show:
         plt.show()
     plt.close()
-    
+
 def generate_abstact_plotU(
         directory_path, name, cost, series, beta, percentage_essential, problem, show=False
 ):
@@ -55,7 +55,7 @@ def generate_abstact_plotU(
     if show:
         plt.show()
     plt.close()
-    
+
     plt.rcParams["figure.figsize"] = (8, 8)
     plt.plot(t, series[:, 1])
     plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
@@ -72,8 +72,8 @@ def generate_abstact_plotU(
     if show:
         plt.show()
     plt.close()
-    
-    
+
+
 
     plt.rcParams["figure.figsize"] = (8, 8)
     plt.plot(t, series[:, 2])
@@ -92,25 +92,25 @@ def generate_abstact_plotU(
         plt.show()
     plt.close()
 
-    
+
 def print_heat_map(
          directory_path, w, S, E, I, R, beta, percentage_essential, problem, show=False
 ):
     cost_deaths = np.sum(R[-1, :] * problem.death_rates)
-    
+
     days = np.linspace(0, problem.time_horizon, problem.N + 1)
 
     vac_plan  = pd.DataFrame(np.array(w))
 
-    groups = ['0-4', '5-14', '15-19 non-essential', '15-19 essential', '20-39 non-essential', 
+    groups = ['0-4', '5-14', '15-19 non-essential', '15-19 essential', '20-39 non-essential',
 
-              '20-39 essential', '40-59 non-essential','40-59 essential', '60-69 non-essential', 
+              '20-39 essential', '40-59 non-essential','40-59 essential', '60-69 non-essential',
 
               '60-69 essential','70+']
 
     plt.figure(figsize=(12, 12))
 
-    
+
 
     sb.heatmap(np.transpose(np.array(vac_plan)), cmap='Blues', robust=True,
 
@@ -134,7 +134,7 @@ def print_heat_map(
         dpi=300,
         bbox_inches="tight",
     )
-    
+
     if show:
         plt.show()
     plt.close()
@@ -156,5 +156,3 @@ def generate_all_plots(directory_path, w, S, E, I, R,cost, beta, percentage_esse
     generate_abstact_plot(
                 directory_path, "Recovered Per Day", cost, R, beta, percentage_essential, problem, show=False
     )
-
-

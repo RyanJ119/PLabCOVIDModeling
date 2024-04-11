@@ -50,7 +50,7 @@ eta= (mu+1)./(mu+1)-1 + .01; %hospitalization rate
 %sigma= 0; %hospitalization rate
 
 
-sigma =( (mu+1)./(mu+1) -119/120); % 1/60 
+sigma =( (mu+1)./(mu+1) -119/120); % 1/60
 %sigma = .066*(mu-.5).^2+(1/60)
 
 
@@ -74,10 +74,9 @@ d = .19;
 %u = ones(1,runSolver);
 
 %u = .99; %1 = no lockdown 0 = full lockdown
-%% Mutating constants 
+%% Mutating constants
 
     m = 10;
-    v = .5*m;       %Speed at which mutation will travel 
+    v = .5*m;       %Speed at which mutation will travel
     delv = 1/v;
     delm = 1/m;     %Size of one piece of infected to be mutated
-    

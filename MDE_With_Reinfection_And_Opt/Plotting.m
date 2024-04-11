@@ -23,11 +23,11 @@ sumI = zeros(n/vas, totalDays+1)';   %set up a matrix to conatenate our infected
 
 for j = 1:vas
     for i = 1:(n/vas)
-        
+
         sumI(:,j) = sumI(:,j)+I(:,(j-1)*(n/vas)+i);  %concatenate n infected populations into vas categories
-        
+
     end
-    
+
 end
 
 
@@ -57,7 +57,7 @@ figure; %Plotting u
 xlabel('Days', 'FontSize', 20);
 ylabel('Percent Locked Down', 'FontSize', 20);
 ax = gca;
-ax.FontSize = 20; 
+ax.FontSize = 20;
 figure('name','input values'); %Plotting R Beta and Gamma
 
 subplot(3,3,1);
@@ -69,10 +69,10 @@ title('Replication Rate')
 subplot(3,3,3);
 plot(mu,betaRate)
 title('\beta(\alpha)')
-subplot(3,3,4); 
+subplot(3,3,4);
 plot(mu,phi(mu))
 title('\Phi(\alpha)')
-subplot(3,3,5); 
+subplot(3,3,5);
 plot(mu,eta)
 title('\eta(\alpha)')
 figure;
@@ -97,9 +97,9 @@ zlabel('Infected')
 figure;
  ss = size(probdist);
  [x,y] = ndgrid(1:ss(2),1:ss(1));
- 
+
  probmat = repelem(probdist,2, 1);
- 
+
  imagesc(probmat');
 myColorMap = jet(256);
 myColorMap(1,:) = 1;
@@ -155,12 +155,3 @@ zlabel('Susceptible Recovered')
 % xlabel('Days')
 % ylabel('Mutations')
 % zlabel('Percent of total infections')
-
-
-
-
-
-
-
-
-

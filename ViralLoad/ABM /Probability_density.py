@@ -87,4 +87,3 @@ for file_name in file_list:
         # Save the 2D plot
         fig2.savefig(plot_path.replace('.png', '_2D.png'))
         plt.close(fig2)
-

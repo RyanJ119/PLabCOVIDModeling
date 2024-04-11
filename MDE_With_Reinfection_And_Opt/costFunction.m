@@ -8,4 +8,3 @@ cost3 = c3*deaths; %cost of death
 
 cost =  cost1+cost2+cost3;
 end
-

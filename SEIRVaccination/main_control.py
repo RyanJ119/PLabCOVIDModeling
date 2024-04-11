@@ -31,7 +31,7 @@ def learn_optimal_control_fixed_order(problem, ordering, max_num_vaccines_per_da
         w[breaking_point:, idx] = 0.0
         i += 1
     return w
-    
+
 def learn_optimal_control_fixed_order_5_E_First(problem, ordering, max_num_vaccines_per_day):
     if sorted(ordering) != sorted(range(len(ordering))):
         return
@@ -48,14 +48,14 @@ def learn_optimal_control_fixed_order_5_E_First(problem, ordering, max_num_vacci
 
     while i < len(ordering):
         if idx !=4:
-            
+
             idx = ordering[i]
             w[breaking_point:, idx] = max_num_vaccines_per_day
             S, _, _, _, _, _ , _ , _ = simulate(problem, w)
             breaking_point = _last_positive_component_in_group(S, idx)
         w[breaking_point:, idx] = 0.0
         i += 1
-    
+
     return w
 
 def learn_optimal_control_fixed_day(problem, ordering, max_num_vaccines_per_day):
@@ -67,7 +67,7 @@ def learn_optimal_control_fixed_day(problem, ordering, max_num_vaccines_per_day)
 
 
     for i in range(180):
-        
+
         w[0*int(N/num_age_groups):(1)*int(N/(num_age_groups-2)),10] = max_num_vaccines_per_day
         w[1*int(N/(num_age_groups-2)):(2)*int(N/(num_age_groups-2)),9] = max_num_vaccines_per_day
         w[2*int(N/(num_age_groups-2)):(3)*int(N/(num_age_groups-2)),8] = max_num_vaccines_per_day
@@ -110,11 +110,11 @@ def main():
     percentages_essential = [0.44]
     ordering = np.flip(list(range(num_age_groups)))
     max_num_vaccines_per_day = np.sum(state_data["initial_S"]) * 0.6 / time_horizon
-    
+
     with open('NJ-Deaths.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Title", "baseline", "descent", "descent Es 5", "opt", "simOpt", "evenly spaced"])
-                    
+
         for R0 in R0s:
             for contact_matrix_pair in matrices:
                 contact_matrix = np.loadtxt(open(contact_matrix_pair[1], "rb"), delimiter=",")
@@ -135,13 +135,13 @@ def main():
                         state_data["population"], percentage_essential=percentage_essential
                     )
                     #initial_V = np.zeros((1, num_age_groups))
-                    
+
                     initial_Sv = np.zeros((1, num_age_groups))
                     initial_Ev = np.zeros((1, num_age_groups))
                     initial_Iv = np.zeros((1, num_age_groups))
                     initial_Rv = np.zeros((1, num_age_groups))
-                    
-                    
+
+
                     problem = Problem(
                         time_horizon,
                         R0,
@@ -149,22 +149,22 @@ def main():
                         initial_E,
                         initial_I,
                         initial_R,
-                        
+
                         initial_Sv,
                         initial_Ev,
                         initial_Iv,
                         initial_Rv,
-                        
+
                         population,
                         contact_matrix,
                         death_rates,
                         60
                     )
-                   
-        
-    
-                    
-            
+
+
+
+
+
                     # # Baseline
                     w = np.zeros((problem.N + 1, num_age_groups))
                     S, E, I, R, Sv, Ev, Iv, Rv = simulate(problem, w)
@@ -174,11 +174,11 @@ def main():
                     )
                     #print(I)
                     cost_deaths1 = np.sum(R[-1, :] * problem.death_rates)
-                    
-                   
-                    
+
+
+
                     #print_heat_map(dir_path, w, S, E, I, R, V, contact_matrix_pair[0], percentage_essential, problem, False)
-                   
+
                     # Descent bang bang
                     w = learn_optimal_control_fixed_order(
                         problem, ordering, max_num_vaccines_per_day
@@ -188,16 +188,16 @@ def main():
                     generate_all_plots(
                         dir_path, w, S, E, I, R, Sv, Iv, Ev, Rv, contact_matrix_pair[0], percentage_essential, problem, False
                     )
-                    
+
                     print_heat_map(dir_path, w, S, E, I, R, Sv, Iv, Ev, Rv, contact_matrix_pair[0], percentage_essential, problem, False)
                     cost_deaths2 = np.sum(R[-1, :] * problem.death_rates)
-                    
+
                     # Descent bang bang with 5 E first
-                    
+
                     w = learn_optimal_control_fixed_order_5_E_First(
                         problem, ordering, max_num_vaccines_per_day
                     )
-                    
+
                     S, E, I, R, Sv, Iv, Ev, Rv = simulate(problem, w)
                     dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "descent_bangbang_5_Essentail_first_")
                     generate_all_plots(
@@ -205,7 +205,7 @@ def main():
                     )
                     print_heat_map(dir_path, w, S, E, I, R, Sv, Iv, Ev, Rv, contact_matrix_pair[0], percentage_essential, problem, False)
                     cost_deaths3 = np.sum(R[-1, :] * problem.death_rates)
-                   
+
                     #Optimal control no init
                     S, E, I, R, Sv, Iv, Ev, Rv, w, u = solve_control_problem(problem, max_num_vaccines_per_day)
                     dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")
@@ -214,7 +214,7 @@ def main():
                     )
                     print_heat_map(dir_path, w, S, E, I, R, Sv, Iv, Ev, Rv, contact_matrix_pair[0], percentage_essential, problem, False)
                     cost_deaths4 = np.sum(R[-1, :] * problem.death_rates)
-                    
+
                     S, E, I, R, Sv, Iv, Ev, Rv = simulate(problem, w)
                     dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "simulated_opt_control_")
                     generate_all_plots(
@@ -222,7 +222,7 @@ def main():
                     )
                     print_heat_map(dir_path, w, S, E, I, R, Sv, Iv, Ev, Rv, contact_matrix_pair[0], percentage_essential, problem, False)
                     cost_deaths5 = np.sum(R[-1, :] * problem.death_rates)
-                    
+
                     #Evenly spaced days
                     S, E, I, R, Sv, Iv, Ev, Rv = simulate(problem, w)
                     w = learn_optimal_control_fixed_day(
@@ -232,11 +232,11 @@ def main():
                         dir_path, w, S, E, I, R, Sv, Iv, Ev, Rv, contact_matrix_pair[0], percentage_essential, problem, False
                     )
                     print_heat_map(dir_path, w, S, E, I, R, Sv, Iv, Ev, Rv, contact_matrix_pair[0], percentage_essential, problem, False)
-                    
+
                     cost_deaths6 = np.sum(R[-1, :] * problem.death_rates)
-                    
+
                     writer.writerow([f"R0-{problem.R0} PE-{percentage_essential} beta-{contact_matrix_pair[0]} ", cost_deaths1, cost_deaths2,cost_deaths3,cost_deaths4,cost_deaths5, cost_deaths6 ])
-    
-    
+
+
 if __name__ == "__main__":
     main()

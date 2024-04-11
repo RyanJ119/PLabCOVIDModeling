@@ -1,5 +1,5 @@
 clear all;
-Inputs; 
+Inputs;
 
 % %theModel(.5)
 
@@ -9,7 +9,7 @@ Inputs;
 % %u = fminsearch(@Model,[0,1])
 % goal = 0;
 % weight = ones(1,runSolver);
-% 
+%
 % x = fgoalattain(phi,1,0,1 )
 %A = ones(1,runSolver);
 %b = 400;
@@ -49,10 +49,7 @@ ms = MultiStart('UseParallel', true)
 
 
 %%%%%%%%%% Local minimum, should be used given a good x0
-x = fmincon(@(uOpt)theModel(uOpt),x0,A,b, Aeq,beq , lb, ub,[], opts) 
+x = fmincon(@(uOpt)theModel(uOpt),x0,A,b, Aeq,beq , lb, ub,[], opts)
 
 
 %x = run(ms,problem,20)
-
-
-

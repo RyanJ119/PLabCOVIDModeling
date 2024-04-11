@@ -37,11 +37,11 @@ def main():
     percentages_essential = [0]
     ordering = np.flip(list(range(num_age_groups)))
     max_num_vaccines_per_day = np.sum(state_data["initial_S"]) * 0.6 / time_horizon
-    
+
     with open('FL-Deaths.csv', 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Title", "baseline", "descent", "descent Es 5", "opt", "simOpt", "evenly spaced"])
-                    
+
         for R0 in R0s:
             for contact_matrix_pair in matrices:
                 contact_matrix = np.loadtxt(open(contact_matrix_pair[1], "rb"), delimiter=",")
@@ -62,10 +62,10 @@ def main():
                         state_data["population"], percentage_essential=percentage_essential
                     )
                     #initial_V = np.zeros((1, num_age_groups))
-                    
+
                    # print(sum(sum(initial_I)))
-                    
-                    
+
+
                     problem = Problem(
                         time_horizon,
                         R0,
@@ -73,21 +73,21 @@ def main():
                         initial_E*.6,
                         initial_I*.6,
                         initial_R,
-                        
-                        
+
+
                         population,
                         contact_matrix,
                         death_rates,
                         cost_lockdown,
                         80
                     )
-                   
-        
-    
-                    
-            
-               
-         
+
+
+
+
+
+
+
                     S, E, I, R, w, cost = solve_control_problem(problem, max_num_vaccines_per_day)
                     dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")
                     print('deaths:')
@@ -96,8 +96,8 @@ def main():
                         dir_path, np.array(w), np.array(S), np.array(E), np.array(I), np.array(R), cost,  contact_matrix_pair[0], percentage_essential, cost_lockdown, problem, False
                     )
 
-                    
 
-    
+
+
 if __name__ == "__main__":
     main()

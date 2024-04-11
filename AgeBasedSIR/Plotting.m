@@ -65,14 +65,3 @@ shading interp
 xlabel('Days')
 ylabel('Age')
 zlabel('Susceptible')
-
-
-
-
-
-
-
-
-
-
-

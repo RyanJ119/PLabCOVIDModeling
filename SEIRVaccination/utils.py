@@ -12,14 +12,14 @@ class Problem:
         _init_E,
         _init_I,
         _init_R,
-        
+
         _init_Sv,
         _init_Ev,
         _init_Iv,
         _init_Rv,
-        
-        
-        
+
+
+
         _population,
         _contact_matrix,
         _death_rates,
@@ -37,13 +37,13 @@ class Problem:
         self.initial_I = _init_I
         self.initial_R = _init_R
        # self.initial_V = _init_V
-        
+
         self.initial_Sv = _init_Sv
         self.initial_Ev = _init_Ev
         self.initial_Iv = _init_Iv
         self.initial_Rv = _init_Rv
-        
-        
+
+
         self.population = _population
         self.contact_matrix = _contact_matrix
         self.death_rates = _death_rates

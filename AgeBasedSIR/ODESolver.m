@@ -1,6 +1,6 @@
 function dYdt = ODESolver(t,Y,n, beta, gamma)
  lOI = 1/180; %% 1/number of days immune- loss of immunity rate
- 
+
 S = Y(1:n);   %% Susceptibles
 I = Y(n+1:(2*n)) ;    %infected populations governed by choice of n
 R = Y(2*n+1);   %% Recovered
@@ -16,7 +16,7 @@ for i = 1:n
         if abs(j-i)>20
             Ihat(i,j) = 0;
         end
-    end 
+    end
 
 end
 

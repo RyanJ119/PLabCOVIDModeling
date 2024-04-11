@@ -27,14 +27,14 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     initial_I = problem.initial_I
     initial_R = problem.initial_R
     #initial_V = problem.initial_V
-    
+
     initial_Sv = problem.initial_Sv
     initial_Ev = problem.initial_Ev
     initial_Iv = problem.initial_Iv
     initial_Rv = problem.initial_Rv
 
 
-  
+
 
     tab_N= problem.population
     num_age_groups = tab_N.shape[1]
@@ -67,42 +67,42 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     u=MX.sym('u',N+1)
     w=MX.sym('w',N+1,num_age_groups)
 
-   
+
     ## Discretization of dynamics with implicit RK2 (S+E+I)
-   
+
     dSdt = -u * S * ((mtimes(I,a)+ .3 * mtimes(Iv,a)) / repmat(mtimes(tab_N, a), N+1, 1)) - w * S/(S+E+I) #*(S>=0)*(E>=0)*(I>=0)
-    
+
     dEdt =  u * S * ((mtimes(I,a)+ .3 * mtimes(Iv,a)) / repmat(mtimes(tab_N, a), N+1, 1))  - delta * E- w * E/(S+E+I)
-    
+
     dIdt = delta * E - gamma * I - w * I/(S+E+I)
-    
+
     dRdt = gamma * I
-    
+
    # dVdt = w #*(S>=0)*(E>=0)*(I>=0)
 
     dSvdt = -u * Sv * ((.3 * mtimes(I,a)+ .09 * mtimes(Iv,a)) / repmat(mtimes(tab_N, a), N+1, 1)) + w * S/(S+E+I) #*(S>=0)*(E>=0)*(I>=0)
-    
-    dEvdt =  u * Sv * ((.3 * mtimes(I,a)+ .09 * mtimes(Iv,a)) / repmat(mtimes(tab_N, a), N+1, 1))  - delta * Ev + w * E/(S+E+I)
-    
-    dIvdt = delta * Ev - gamma * Iv + w * I/(S+E+I)
-    
-    dRvdt = gamma * Iv
-   
-    
 
-    
-     
+    dEvdt =  u * Sv * ((.3 * mtimes(I,a)+ .09 * mtimes(Iv,a)) / repmat(mtimes(tab_N, a), N+1, 1))  - delta * Ev + w * E/(S+E+I)
+
+    dIvdt = delta * Ev - gamma * Iv + w * I/(S+E+I)
+
+    dRvdt = gamma * Iv
+
+
+
+
+
     cont_dynS = S[1:N+1,:] - S[0:N,:] - T/(2*N) * (dSdt[0:N,:] + dSdt[1:N+1,:])
     cont_dynE = E[1:N+1,:] - E[0:N,:] - T/(2*N) * (dEdt[0:N,:] + dEdt[1:N+1,:])
     cont_dynI = I[1:N+1,:] - I[0:N,:] - T/(2*N) * (dIdt[0:N,:] + dIdt[1:N+1,:])
     cont_dynR = R[1:N+1,:] - R[0:N,:] - T/(2*N) * (dRdt[0:N,:] + dRdt[1:N+1,:])
-    
+
    # cont_dynV = V[1:N+1,:] - V[0:N,:] - T/(2*N) * (dVdt[0:N,:] + dVdt[1:N+1,:])
     cont_dynSv = Sv[1:N+1,:] - Sv[0:N,:] - T/(2*N) * (dSvdt[0:N,:] + dSvdt[1:N+1,:])
     cont_dynEv = Ev[1:N+1,:] - Ev[0:N,:] - T/(2*N) * (dEvdt[0:N,:] + dEvdt[1:N+1,:])
     cont_dynIv = Iv[1:N+1,:] - Iv[0:N,:] - T/(2*N) * (dIvdt[0:N,:] + dIvdt[1:N+1,:])
     cont_dynRv = Rv[1:N+1,:] - Rv[0:N,:] - T/(2*N) * (dRvdt[0:N,:] + dRvdt[1:N+1,:])
-    
+
     cont_dyn = vertcat(
         reshape(cont_dynS,-1,1),
         reshape(cont_dynE,-1,1),
@@ -121,7 +121,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
                         #print (S)
     ## Cost
     cost_deaths = sum2(R[N, :] * death_rates)     #   cost_deaths = sum1(mtimes(I,death_rates.T))
-   
+
     ## Initial guess
     if init_S is None:
     	## [Manu] Below, we choose a very rough initialization, but it would be better to choose adequate "intuitive" controls
@@ -138,7 +138,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         init_u=(u_min+u_max)/2 * np.ones(N+1)
         ## [Manu] I have updated the rough way here to initialize w:
         init_w=(w_min+w_max)/(2*num_age_groups) * (np.ones((N+1,num_age_groups)))
-        
+
     #     init_w[:, 0:1] = 0
     init_xu=vertcat(
         reshape(init_S,-1,1),
@@ -227,7 +227,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         reshape(upper_bound_Rv,-1,1),
         reshape(upper_bound_w,-1,1),
         upper_bound_u)
-   
+
     ## Solve
     optim_problem = {
         'x' : vertcat(
@@ -288,9 +288,9 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     Iv=reshape(Iv,N+1, num_age_groups)
     Rv=xu[(7 * num_age_groups * (N+1)):(8 * num_age_groups * (N+1))]
     Rv=reshape(Rv,N+1, num_age_groups)
-    
-    
-    
+
+
+
     # Sv=xu[:(1 * num_age_groups * (N+1))]
     # Sv=reshape(S,N+1, num_age_groups)
     # Ev=xu[(1 * num_age_groups * (N+1)):(2 * num_age_groups * (N+1))]
@@ -299,8 +299,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     # Iv=reshape(I,N+1, num_age_groups)
     # Rv=xu[(3 * num_age_groups * (N+1)):(4 * num_age_groups * (N+1))]
     # Rv=reshape(R,N+1, num_age_groups)
-    
-    w=xu[(8 * num_age_groups * (N+1)):(9 * num_age_groups * (N+1))] 
+
+    w=xu[(8 * num_age_groups * (N+1)):(9 * num_age_groups * (N+1))]
     w=reshape(w,N+1,num_age_groups)
     u=xu[(9 * num_age_groups * (N+1)):]
 
