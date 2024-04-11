@@ -8,14 +8,6 @@ import csv
 
 import time
 
-def _last_positive_component_in_group(S, idx):
-    indices = [i for i, s in enumerate(S[:, idx]) if s > 0.0]
-    if len(indices) > 0:
-        return max(indices) - 1
-    return len(S[:, idx])
-
-
-
 
 def main():
     state_id = "NJ"
