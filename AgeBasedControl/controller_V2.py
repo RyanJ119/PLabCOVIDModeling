@@ -22,9 +22,6 @@ class ProblemSolver2(ProblemSolver):
         rows, columns = dimensions
 
         mat_old= self.contact_matrix.copy()
-        mat_school=self.contact_matrix.copy()
-        mat_public=self.contact_matrix.copy()-mat_school-mat_old
-        mat_parent_impacted_school_closure=self.tau3*mat_public.copy()
 
         for i in range(rows):
             for j in range(columns):
@@ -32,9 +29,20 @@ class ProblemSolver2(ProblemSolver):
                 if i<rows-1:
                     if j<columns-1:
                         mat_old[i][j]=0
+
+        mat_school=self.contact_matrix.copy()
+
+        for i in range(rows):
+            for j in range(columns):
                 mat_school[i][j] = mat_school[i][j]*self.tau2
-                if (i < 4) or (j != 0 and j!=1 and j!=2 and j!=3):
+                if (i > 4 or j > 4):
                     mat_school[i][j]=0
+        mat_public=self.contact_matrix.copy()-mat_school.copy()-mat_old.copy()
+        
+        mat_parent_impacted_school_closure=self.tau3*mat_public.copy()
+                
+        for i in range(rows):
+            for j in range(columns):
                 if (i>7 or j>7) or (i < 4 and j < 4) or (4 <= i and 4 <= j):
                     mat_parent_impacted_school_closure[i][j]=0
 
