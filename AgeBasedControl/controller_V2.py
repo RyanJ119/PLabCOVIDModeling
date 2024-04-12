@@ -43,7 +43,7 @@ class ProblemSolver2(ProblemSolver):
                 
         for i in range(rows):
             for j in range(columns):
-                if (i>7 or j>7) or (i < 4 and j < 4) or (4 <= i and 4 <= j):
+                if (i>8 or j>8) or (i < 4 and j < 4) or (4 <= i and 4 <= j):
                     mat_parent_impacted_school_closure[i][j]=0
 
         return [mat_old, mat_school, mat_public-mat_parent_impacted_school_closure, mat_parent_impacted_school_closure]
