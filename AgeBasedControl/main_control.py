@@ -53,7 +53,7 @@ def main():
                     model=ProblemSolver1(problem)
 
                     S, E, I, R, w, cost = model.solve_control_problem()
-                    dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")
+                    dir_path = make_result_directory_for_simulation(model.model_name,state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")
                     print('deaths:')
                     print(sum(sum(np.array(R)[-1,:]*death_rates)))
                     generate_all_plots(

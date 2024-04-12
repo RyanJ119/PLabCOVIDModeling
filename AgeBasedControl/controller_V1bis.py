@@ -4,7 +4,7 @@ from casadi import *
 from controller import ProblemSolver
 from utils import Problem
 
-class ProblemSolver1(ProblemSolver):
+class ProblemSolver1bis(ProblemSolver):
     def __init__(self, problem: Problem):
         self.numControls = 3
         
@@ -13,7 +13,7 @@ class ProblemSolver1(ProblemSolver):
         self.tau2 = 1#2/3
         self.w_min=0
         self.w_max=.9
-        self.model_name="V1"
+        self.model_name="V1bis"
 
     def interaction_matrices(self):
         """Define interaction matrices"""
@@ -36,14 +36,14 @@ class ProblemSolver1(ProblemSolver):
                 mat_school[i][j] = mat_school[i][j]*self.tau2
                 if (i != 0 and i!=1 and i!=2 and i!=3 ) or (j != 0 and j!=1 and j!=2 and j!=3):
                     mat_school[i][j]=0
-        mat_public=self.contact_matrix.copy()
+        mat_public=self.contact_matrix.copy()-mat_school-mat_old
 
         return [mat_old, mat_school, mat_public]
 
     def model_dynamics(self,dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices,controls):
         """Defines the dynamic of the model"""
-        dSdt= -1* self.beta * S *( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]) +(1-controls[:,2]) * mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1)
-        dEdt= self.beta * S *( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]) +(1-controls[:,2]) * mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) - self.delta * E
+        dSdt= -1* self.beta * S * (1-controls[:,2]) * ( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]) + mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1)
+        dEdt= self.beta * S * (1-controls[:,2]) * ( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]) + mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) - self.delta * E
         dIdt= self.delta * E - self.gamma * I
         dRdt= self.gamma * I
         return dSdt,dEdt,dIdt,dRdt
@@ -52,7 +52,7 @@ class ProblemSolver1(ProblemSolver):
         """Defines the cost function"""
         cost_deaths = sum2(R[self.N, :] * self.death_rates)*self.cost_per_death
 
-        cost_lockdown=sum2((sum1( interaction_matrices[0]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown_old*sum2(controls[:,0])) + sum2((sum1( interaction_matrices[1]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown_school*sum2(controls[:,1]))+ sum2((sum1( interaction_matrices[2]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown*sum2(controls[:,2]))
+        cost_lockdown=sum2((sum1( interaction_matrices[0]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown_old*sum2(controls[:,0]+controls[:,2]-controls[:,0]*controls[:,2])) + sum2((sum1( interaction_matrices[1]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown_school*sum2(controls[:,1]+controls[:,2]-controls[:,1]*controls[:,2]))+ sum2((sum1( interaction_matrices[2]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown*sum2(controls[:,2]))
 
         cost_end = sum2(I[self.N, :] * self.death_rates)*self.cost_per_death*90
 

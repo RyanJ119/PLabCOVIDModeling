@@ -139,8 +139,8 @@ def transform_to_have_essential_workers(data, percentage_essential=0.44):
     )
 
 
-def make_result_directory_for_simulation(state_id, beta, R0, percentage_essential, prefix=""):
-    results_path = os.path.join("../results/", f"{prefix}{state_id}_beta{beta}_R0{R0}_PE{percentage_essential}")
+def make_result_directory_for_simulation(model,state_id, beta, R0, percentage_essential, prefix=""):
+    results_path = os.path.join("../results/", f"{prefix}_state={state_id}_beta={beta}_R0={R0}_PE={percentage_essential}_model={model}")
     try:
         os.mkdir(results_path)
     except FileExistsError:

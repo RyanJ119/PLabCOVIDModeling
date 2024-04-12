@@ -43,6 +43,8 @@ class ProblemSolver:
         self.initial_E = problem.initial_E
         self.initial_I = problem.initial_I
         self.initial_R = problem.initial_R
+        
+        self.model_name="former_model"
 
         self.tab_N= problem.population
         self.num_age_groups = self.tab_N.shape[1]
