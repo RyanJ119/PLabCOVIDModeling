@@ -38,12 +38,12 @@ class ProblemSolver2(ProblemSolver):
                 if (i>7 or j>7) or (i < 4 and j < 4) or (4 <= i and 4 <= j):
                     mat_parent_impacted_school_closure[i][j]=0
 
-        return [mat_old, mat_school+mat_parent_impacted_school_closure, mat_public-mat_parent_impacted_school_closure]
+        return [mat_old, mat_school, mat_public-mat_parent_impacted_school_closure, mat_parent_impacted_school_closure]
 
     def model_dynamics(self,dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices,controls):
         """Defines the dynamic of the model"""
-        dSdt= -1* self.beta * S * (1-controls[:,2]) * ( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]+) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]) + mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1)
-        dEdt= self.beta * S * (1-controls[:,2]) * ( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]) + mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) - self.delta * E
+        dSdt= -1* self.beta * S * (1-controls[:,2]) * ( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]+interaction_matrices[3]) + mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1)
+        dEdt= self.beta * S * (1-controls[:,2]) * ( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]+interaction_matrices[3]) + mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) - self.delta * E
         dIdt= self.delta * E - self.gamma * I
         dRdt= self.gamma * I
         return dSdt,dEdt,dIdt,dRdt
@@ -52,7 +52,7 @@ class ProblemSolver2(ProblemSolver):
         """Defines the cost function"""
         cost_deaths = sum2(R[self.N, :] * self.death_rates)*self.cost_per_death
 
-        cost_lockdown=sum2((sum1( interaction_matrices[0]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown_old*sum2(controls[:,0]+controls[:,2]-controls[:,0]*controls[:,2])) + sum2((sum1( interaction_matrices[1]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown_school*sum2(controls[:,1]+controls[:,2]-controls[:,1]*controls[:,2]))+ sum2((sum1( interaction_matrices[2]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown*sum2(controls[:,2]))
+        cost_lockdown=sum2((sum1( interaction_matrices[0]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown_old*sum2(controls[:,0]+controls[:,2]-controls[:,0]*controls[:,2])) + sum2((sum1( interaction_matrices[1]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown_school*sum2(controls[:,1]+controls[:,2]-controls[:,1]*controls[:,2]))+ sum2((sum1( interaction_matrices[2]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown*sum2(controls[:,2]))+sum2((sum1( interaction_matrices[3]) / sum1(self.contact_matrix)) *self.tab_N )*sum1(self.cost_of_lockdown*sum2(controls[:,1]+controls[:,2]-controls[:,1]*controls[:,2]))
 
         cost_end = sum2(I[self.N, :] * self.death_rates)*self.cost_per_death*90
 
