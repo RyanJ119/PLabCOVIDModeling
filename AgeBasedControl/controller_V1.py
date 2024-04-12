@@ -36,7 +36,7 @@ class ProblemSolver1(ProblemSolver):
                 mat_school[i][j] = mat_school[i][j]*self.tau2
                 if (i != 0 and i!=1 and i!=2 and i!=3 ) or (j != 0 and j!=1 and j!=2 and j!=3):
                     mat_school[i][j]=0
-        mat_public=self.contact_matrix.copy()
+        mat_public=self.contact_matrix.copy()-mat_old.copy()-mat_school.copy()
 
         return [mat_old, mat_school, mat_public]
 
