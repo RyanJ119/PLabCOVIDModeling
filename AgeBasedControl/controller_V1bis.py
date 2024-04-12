@@ -36,7 +36,7 @@ class ProblemSolver1bis(ProblemSolver):
                 mat_school[i][j] = mat_school[i][j]*self.tau2
                 if (i > 4 or j > 4):
                     mat_school[i][j]=0
-        mat_public=self.contact_matrix.copy()-mat_school-mat_old
+        mat_public=self.contact_matrix.copy()-mat_school.copy()-mat_old.copy()
 
         return [mat_old, mat_school, mat_public]
 
