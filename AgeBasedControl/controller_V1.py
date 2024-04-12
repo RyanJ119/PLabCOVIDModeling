@@ -6,10 +6,13 @@ from utils import Problem
 
 class ProblemSolver1(ProblemSolver):
     def __init__(self, problem: Problem):
+        self.numControls = 3
+        
+        super().__init__(problem)
         self.tau1 = 1#4/5
         self.tau2 = 1#2/3
-        self.numControls = 3
-        super().__init__(problem)
+        self.w_min=0
+        self.w_max=1.
 
     def interaction_matrices(self):
         """Define interaction matrices"""
