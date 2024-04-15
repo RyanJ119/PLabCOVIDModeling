@@ -13,7 +13,7 @@ class ProblemSolver2(ProblemSolver):
         self.tau2 = 1#2/3
         self.tau3 = 1/7*1/5 # 1/7 is approximately half the percentage of adults who have children, 1/5 is a guess for the sub proportion of these adult unable to afford chidcare
         self.w_min=0
-        self.w_max=0.9
+        self.w_max=1.
         self.model_name="V2"
 
     def interaction_matrices(self):

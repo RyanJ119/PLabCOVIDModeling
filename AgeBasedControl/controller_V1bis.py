@@ -12,7 +12,7 @@ class ProblemSolver1bis(ProblemSolver):
         self.tau1 = 1#4/5
         self.tau2 = 1#2/3
         self.w_min=0
-        self.w_max=.9
+        self.w_max=1.
         self.model_name="V1bis"
 
     def interaction_matrices(self):

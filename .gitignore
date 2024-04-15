@@ -12,3 +12,11 @@ AgeBasedControl/FL-Deaths.csv
 AgeBasedControl/__pycache__/constants.cpython-311.pyc
 AgeBasedControl/__pycache__/controller.cpython-311.pyc
 AgeBasedControl/__pycache__/controller_V1.cpython-311.pyc
+AgeBasedControl/__pycache__/controller_V2.cpython-311.pyc
+results/opt_control__state=NJ_beta=0.75_R0=1.7_PE=0_model=V2/beta-0.75-R0-1.7-PE-0-Exposed Per Day.png
+results/opt_control__state=NJ_beta=0.75_R0=1.7_PE=0_model=V2/beta-0.75-R0-1.7-PE-0-Infected Per Day.png
+results/opt_control__state=NJ_beta=0.75_R0=1.7_PE=0_model=V2/beta-0.75-R0-1.7-PE-0-Susceptible Per Day.png
+results/opt_control__state=NJ_beta=0.75_R0=1.7_PE=0_model=V2/beta-0.75-R0-1.7-PE-0-Recovered Per Day.png
+results/opt_control__state=NJ_beta=0.75_R0=1.7_PE=0_model=V2/GenPop-beta-0.75-R0-1.7-PE-0-Lockdown Policy.png
+results/opt_control__state=NJ_beta=0.75_R0=1.7_PE=0_model=V2/Old-beta-0.75-R0-1.7-PE-0-Lockdown Policy.png
+results/opt_control__state=NJ_beta=0.75_R0=1.7_PE=0_model=V2/School-beta-0.75-R0-1.7-PE-0-Lockdown Policy.png
