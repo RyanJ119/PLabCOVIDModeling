@@ -34,7 +34,7 @@ class ProblemSolver1bis(ProblemSolver):
         for i in range(rows):
             for j in range(columns):
                 mat_school[i][j] = mat_school[i][j]*self.tau2
-                if (i > 4 or j > 4):
+                if (i > 3 or j > 3):
                     mat_school[i][j]=0
         mat_public=self.contact_matrix.copy()-mat_school.copy()-mat_old.copy()
 
