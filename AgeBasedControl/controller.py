@@ -29,7 +29,7 @@ class ProblemSolver:
         # sigma = 1/60
         self.delta = problem.delta
         self.cost_of_lockdown=  70
-        self.cost_of_lockdown_old=   60
+        self.cost_of_lockdown_old=   45
         self.cost_of_lockdown_school = 30
         self.cost_per_death= 1500000
         self.u_min= problem.R0 * self.gamma
@@ -43,7 +43,7 @@ class ProblemSolver:
         self.initial_E = problem.initial_E
         self.initial_I = problem.initial_I
         self.initial_R = problem.initial_R
-        
+
         self.model_name="former_model"
 
         self.tab_N= problem.population

@@ -7,7 +7,7 @@ from utils import Problem
 class ProblemSolver2(ProblemSolver):
     def __init__(self, problem: Problem):
         self.numControls = 3
-        
+
         super().__init__(problem)
         self.tau1 = 1#4/5
         self.tau2 = 1#2/3
@@ -38,9 +38,9 @@ class ProblemSolver2(ProblemSolver):
                 if (i > 3 or j > 3):
                     mat_school[i][j]=0
         mat_public=self.contact_matrix.copy()-mat_school.copy()-mat_old.copy()
-        
+
         mat_parent_impacted_school_closure=self.tau3*mat_public.copy()
-                
+
         for i in range(rows):
             for j in range(columns):
                 if (i>8 or j>8) or (i < 4 and j < 4) or (4 <= i and 4 <= j):
