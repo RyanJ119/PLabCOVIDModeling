@@ -4,7 +4,7 @@ import csv
 from constants import data, state_id, death_rates, num_age_groups, matrices, time_horizon, cost_lockdown, R0s, percentages_essential
 from utils import transform_to_have_essential_workers, make_result_directory_for_simulation, Problem
 from plotting import generate_all_plots
-from controller_V2 import ProblemSolver2
+from controller_V1 import ProblemSolver1
 
 def main():
     """Defines the Model and computes the optimal control associated"""
@@ -50,7 +50,7 @@ def main():
                         80
                     )
 
-                    model=ProblemSolver2(problem)
+                    model=ProblemSolver1(problem)
 
                     S, E, I, R, w, cost = model.solve_control_problem()
                     dir_path = make_result_directory_for_simulation(model.model_name,state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")

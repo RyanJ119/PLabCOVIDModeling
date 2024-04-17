@@ -35,8 +35,6 @@ class ProblemSolver:
         self.u_min= problem.R0 * self.gamma
         self.u_max= problem.R0 * self.gamma  # bounds on u: if u_min=u_max then no lockdown
         self.upper_bound = inf
-        self.w_min=0
-        self.w_max=.6
         self.beta = problem.R0 * self.gamma
         self.death_rates = problem.death_rates
         self.initial_S = problem.initial_S
@@ -50,6 +48,8 @@ class ProblemSolver:
         self.num_age_groups = self.tab_N.shape[1]
 
         self.numControls # To be initialized in the SubClasses
+        self.w_min
+        self.w_max
 
         self.Ntot=sum2(self.tab_N)
 
