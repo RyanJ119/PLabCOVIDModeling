@@ -6,11 +6,10 @@ from utils import Problem
 
 class ProblemSolver1(ProblemSolver):
     def __init__(self, problem: Problem):
+        super().__init__(problem)
         self.numControls = 3
         self.w_min=[0.,0.,0.]
         self.w_max=[.6,.8,1.]
-
-        super().__init__(problem)
         self.tau1 = 4/5
         self.tau2 = 2/3
         self.model_name="V1"

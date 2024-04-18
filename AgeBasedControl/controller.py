@@ -47,10 +47,6 @@ class ProblemSolver:
         self.tab_N= problem.population
         self.num_age_groups = self.tab_N.shape[1]
 
-        self.numControls # To be initialized in the SubClasses
-        self.w_min
-        self.w_max
-
         self.Ntot=sum2(self.tab_N)
 
     def interaction_matrices(self):

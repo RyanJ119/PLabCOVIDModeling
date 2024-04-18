@@ -6,9 +6,8 @@ from utils import Problem
 
 class ProblemSolver2(ProblemSolver):
     def __init__(self, problem: Problem):
-        self.numControls = 3
-
         super().__init__(problem)
+        self.numControls = 3
         self.tau1 = 4/5
         self.tau2 = 2/3
         self.tau3 = 1/7*1/5 # 1/7 is approximately half the percentage of adults who have children, 1/5 is a guess for the sub proportion of these adult unable to afford chidcare

@@ -6,9 +6,8 @@ from utils import Problem
 
 class ProblemSolver1bis(ProblemSolver):
     def __init__(self, problem: Problem):
-        self.numControls = 3
-
         super().__init__(problem)
+        self.numControls = 3
         self.tau1 = 4/5
         self.tau2 = 2/3
         self.w_min=[0.,0.,0.]
