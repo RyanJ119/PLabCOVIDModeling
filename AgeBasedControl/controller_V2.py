@@ -66,7 +66,7 @@ class ProblemSolver2(ProblemSolver):
 
         return cost_all
 
-    def bounds_gg(self, cont_dyn, w):
+    def gg_and_bounds(self, cont_dyn, w):
         gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
         lower_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), np.concatenate((self.w_min[0] * np.ones(self.N+1),self.w_min[1] * np.ones(self.N+1),self.w_min[2] * np.ones(self.N+1)),axis=None))   # w_min=0
         upper_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), np.concatenate((self.w_max[0] * np.ones(self.N+1),self.w_max[1] * np.ones(self.N+1),self.w_max[2] * np.ones(self.N+1)),axis=None))
