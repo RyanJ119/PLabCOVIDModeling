@@ -58,7 +58,7 @@ class ProblemSolver:
         # Must be defined in subclasses according to the choice of the controls
         return None
 
-    def model_dynamics(self,dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices,controls):
+    def model_dynamics(self,S,E,I,interaction_matrices,controls):
         """Defines the dynamic of the model"""
         # Same thing
         return None
@@ -91,7 +91,7 @@ class ProblemSolver:
 
 
         ## Discretization of dynamics with implicit RK2
-        dSdt,dEdt,dIdt,dRdt=self.model_dynamics(dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices, w)
+        dSdt,dEdt,dIdt,dRdt=self.model_dynamics(S,E,I,interaction_matrices, w)
 
         cont_dynS = S[1:self.N+1,:] - S[0:self.N,:] - self.T/(2*self.N) * (dSdt[0:self.N,:] + dSdt[1:self.N+1,:])
         cont_dynE = E[1:self.N+1,:] - E[0:self.N,:] - self.T/(2*self.N) * (dEdt[0:self.N,:] + dEdt[1:self.N+1,:])

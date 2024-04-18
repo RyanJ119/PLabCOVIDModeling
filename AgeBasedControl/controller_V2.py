@@ -46,7 +46,7 @@ class ProblemSolver2(ProblemSolver):
 
         return [mat_old, mat_school, mat_public-mat_parent_impacted_school_closure, mat_parent_impacted_school_closure]
 
-    def model_dynamics(self,dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices,controls):
+    def model_dynamics(self,S,E,I,interaction_matrices,controls):
         """Defines the dynamic of the model"""
         dSdt= -1* self.beta * S * (1-controls[:,2]) * ( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]+interaction_matrices[3]) + mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1)
         dEdt= self.beta * S * (1-controls[:,2]) * ( (1-controls[:,0]) * mtimes(I,interaction_matrices[0]) + (1-controls[:,1]) * mtimes(I,interaction_matrices[1]+interaction_matrices[3]) + mtimes(I,interaction_matrices[2]) )/ repmat(mtimes(self.tab_N, self.contact_matrix), self.N+1, 1) - self.delta * E
