@@ -7,12 +7,12 @@ from utils import Problem
 class ProblemSolver1(ProblemSolver):
     def __init__(self, problem: Problem):
         self.numControls = 3
-        self.w_min=0
-        self.w_max=1.
+        self.w_min=[0.,0.,0.]
+        self.w_max=[.6,.8,1.]
 
         super().__init__(problem)
-        self.tau1 = 1#4/5
-        self.tau2 = 1#2/3
+        self.tau1 = 4/5
+        self.tau2 = 2/3
         self.model_name="V1"
 
     def interaction_matrices(self):
@@ -59,3 +59,8 @@ class ProblemSolver1(ProblemSolver):
         cost_all=cost_deaths+cost_lockdown+cost_end
 
         return cost_all
+    
+    def bounds_gg(self):
+        lower_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), np.concatenate((self.w_min[0] * np.ones(self.N+1),self.w_min[1] * np.ones(self.N+1),self.w_min[2] * np.ones(self.N+1)),axis=None))   # w_min=0
+        upper_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), np.concatenate((self.w_max[0] * np.ones(self.N+1),self.w_max[1] * np.ones(self.N+1),self.w_max[2] * np.ones(self.N+1)),axis=None))
+        return lower_bound_gg, upper_bound_gg

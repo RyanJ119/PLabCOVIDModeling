@@ -110,8 +110,7 @@ class ProblemSolver:
 
         ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
         gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
-        lower_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), self.w_min * np.ones(3*(self.N+1)))   # w_min=0
-        upper_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), self.w_max * np.ones(3*(self.N+1)))
+        lower_bound_gg, upper_bound_gg = self.bounds_gg()
 
         cost_all = self.cost(I, R, interaction_matrices,w)
 

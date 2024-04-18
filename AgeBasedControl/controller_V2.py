@@ -9,11 +9,11 @@ class ProblemSolver2(ProblemSolver):
         self.numControls = 3
 
         super().__init__(problem)
-        self.tau1 = 1#4/5
-        self.tau2 = 1#2/3
+        self.tau1 = 4/5
+        self.tau2 = 2/3
         self.tau3 = 1/7*1/5 # 1/7 is approximately half the percentage of adults who have children, 1/5 is a guess for the sub proportion of these adult unable to afford chidcare
-        self.w_min=0
-        self.w_max=1.
+        self.w_min=[0.,0.,0.]
+        self.w_max=[.6,.8,1.]
         self.model_name="V2"
 
     def interaction_matrices(self):
@@ -67,3 +67,8 @@ class ProblemSolver2(ProblemSolver):
         cost_all=cost_deaths+cost_lockdown+cost_end
 
         return cost_all
+    
+    def bounds_gg(self):
+        lower_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), self.w_min * np.ones(3*(self.N+1)))   # w_min=0
+        upper_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), self.w_max * np.ones(3*(self.N+1)))
+        return lower_bound_gg, upper_bound_gg
