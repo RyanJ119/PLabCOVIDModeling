@@ -33,9 +33,9 @@ class ProblemSolver1(ProblemSolver):
             for j in range(columns):
                 if i > 3 or j > 3:
                     mat_school[i][j]=0 # we get rid of the interactions other than children/children
-                    
+
         mat_public=self.contact_matrix.copy()-mat_school.copy()-mat_old.copy() # remaining of the interactions
-        
+
         return [mat_old, mat_school, mat_public]
 
     def model_dynamics(self,dSdt,dEdt,dIdt,dRdt,S,E,I,R,interaction_matrices,controls):
@@ -57,7 +57,7 @@ class ProblemSolver1(ProblemSolver):
         cost_all=cost_deaths+cost_lockdown+cost_end
 
         return cost_all
-    
+
     def bounds_gg(self, cont_dyn, w):
         gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
         lower_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), np.concatenate((self.w_min[0] * np.ones(self.N+1),self.w_min[1] * np.ones(self.N+1),self.w_min[2] * np.ones(self.N+1)),axis=None))   # w_min=0

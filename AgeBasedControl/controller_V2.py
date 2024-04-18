@@ -65,7 +65,7 @@ class ProblemSolver2(ProblemSolver):
         cost_all=cost_deaths+cost_lockdown+cost_end
 
         return cost_all
-    
+
     def bounds_gg(self, cont_dyn, w):
         gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
         lower_bound_gg = vertcat(np.zeros(4 * self.num_age_groups * self.N), np.concatenate((self.w_min[0] * np.ones(self.N+1),self.w_min[1] * np.ones(self.N+1),self.w_min[2] * np.ones(self.N+1)),axis=None))   # w_min=0
