@@ -109,8 +109,7 @@ class ProblemSolver:
 
 
         ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
-        gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
-        lower_bound_gg, upper_bound_gg = self.bounds_gg()
+        gg, lower_bound_gg, upper_bound_gg = self.gg_and_bounds(cont_dyn, w)
 
         cost_all = self.cost(I, R, interaction_matrices,w)
 
