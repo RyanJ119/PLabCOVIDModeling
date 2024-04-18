@@ -20,23 +20,21 @@ class ProblemSolver1bis(ProblemSolver):
         dimensions = np.shape(self.contact_matrix)
         rows, columns = dimensions
 
-        mat_old= self.contact_matrix.copy()
+        mat_old= self.tau1*(self.contact_matrix.copy())
 
         for i in range(rows):
             for j in range(columns):
-                mat_old[i][j] = mat_old[i][j]*self.tau1
-                if i<rows-1:
-                    if j<columns-1:
-                        mat_old[i][j]=0
+                if i < rows-1 and j < columns-1:
+                    mat_old[i][j]=0 # we get rid of the interactions that don't involve the elderly
 
-        mat_school=self.contact_matrix.copy()
+        mat_school=self.tau2*(self.contact_matrix.copy())
 
         for i in range(rows):
             for j in range(columns):
-                mat_school[i][j] = mat_school[i][j]*self.tau2
-                if (i > 3 or j > 3):
-                    mat_school[i][j]=0
-        mat_public=self.contact_matrix.copy()-mat_school.copy()-mat_old.copy()
+                if i > 3 or j > 3:
+                    mat_school[i][j]=0 # we get rid of the interactions other than children/children
+                    
+        mat_public=self.contact_matrix.copy()-mat_school.copy()-mat_old.copy() # remaining of the interactions
 
         return [mat_old, mat_school, mat_public]
 
