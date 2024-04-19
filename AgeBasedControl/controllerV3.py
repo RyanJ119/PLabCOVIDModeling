@@ -14,7 +14,7 @@ import os
 from datetime import datetime
 import math
 
-model="Former model"
+model="ModelV3"
 
 def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
                           init_E=None, init_I=None, init_R=None, init_V=None,
@@ -93,7 +93,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
 
     
     ## Discretization of dynamics with implicit RK2
-    dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
+    dSdt = (1-w[:,2]) *( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( (beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +(  beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
    
@@ -104,7 +104,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     #dSdt = -u * beta * S * ((mtimes(I,a)) / repmat(mtimes(tab_N, a), N+1, 1))  #*(S>=0)*(E>=0)*(I>=0)
     #dSdt[np.isnan(dSdt)] = 0
     
-    dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
+    dEdt = ( (1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ( beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
    
@@ -145,7 +145,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     ## Cost
     cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
 
-    cost_lockdown=sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0])) + sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))+ sum2((sum1( matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
+    cost_lockdown=sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0]+w[:,2]-w[:,0]*w[:,2])) + sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]+w[:,2]-w[:,1]*w[:,2]))+ sum2((sum1( matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
     #cost_lockdown=sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))
     cost_end = sum2(I[N, :] * death_rates)*cost_per_death*90
     cost_all=cost_deaths+cost_lockdown+cost_end
