@@ -157,7 +157,6 @@ class ProblemSolver:
         lower_bound_w = self.w_min*np.ones((self.N+1,self.numControls))
         upper_bound_w = self.w_max*np.ones((self.N+1,self.numControls))
 
-        upper_bound_w[0:8, :] = 0
         lower_bound_xu = vertcat(
             reshape(lower_bound_S,-1,1),
             reshape(lower_bound_E,-1,1),
