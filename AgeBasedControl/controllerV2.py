@@ -14,6 +14,7 @@ import os
 from datetime import datetime
 import math
 
+model="Former model"
 
 def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
                           init_E=None, init_I=None, init_R=None, init_V=None,

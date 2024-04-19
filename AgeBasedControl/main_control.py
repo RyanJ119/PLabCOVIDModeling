@@ -3,7 +3,7 @@ from utils import transform_to_have_essential_workers, read_data_from_csv, make_
 from plotting import generate_all_plots
 from plotting import print_heat_map
 #from simulator import simulate
-from controllerV2 import solve_control_problem
+from controllerV2 import solve_control_problem, model
 import csv
 
 import time
@@ -98,7 +98,7 @@ def main():
                
          
                     S, E, I, R, w, cost = solve_control_problem(problem, max_num_vaccines_per_day)
-                    dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")
+                    dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, model, "opt_control_")
                     print('deaths:')
                     print(sum(sum(np.array(R)[-1,:]*death_rates)))
                     generate_all_plots(
