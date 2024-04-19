@@ -90,6 +90,11 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     public_matrix=a.copy() -    (mat_old +   mat_school  )
     childcare_matrix=tau3*(public_matrix.copy())
+    for i in range(rows):
+        for j in range(columns):
+            if (i<4 or i>8) and (j<4 or j>8):
+                childcare_matrix[i][j]=0
+                
     matrix4 = public_matrix.copy() -  childcare_matrix
     #matrix4=a.copy()
 #####################################
