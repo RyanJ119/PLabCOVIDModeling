@@ -2,7 +2,7 @@ import numpy as np
 from utils import transform_to_have_essential_workers, read_data_from_csv, make_result_directory_for_simulation, Problem
 from plotting import generate_all_plots
 from plotting import print_heat_map
-from simulator import simulate
+#from simulator import simulate
 from controllerV2 import solve_control_problem
 import csv
 
@@ -41,7 +41,7 @@ def main():
     cost_lockdown = 70
     num_age_groups = len(death_rates[0])
     time_horizon = 180
-matrices = [(0.75,  "../data/InteractionMatrix_beta_0_75.csv")]
+    matrices = [(0.75,  "../data/InteractionMatrix_beta_0_75.csv")]
     R0s = [1.7]
     percentages_essential = [0]
     ordering = np.flip(list(range(num_age_groups)))
