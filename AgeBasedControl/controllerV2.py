@@ -76,7 +76,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     for i in range(rows):
         for j in range(columns):
             mat_old[i][j] = mat_old[i][j]*tau1
-            mat_only_old[i][j] = mat_old[i][j]*tau1
+            mat_only_old[i][j] = mat_only_old[i][j]*tau1
             if i<rows-1:
                 if j<columns-1:
                     mat_old[i][j]=0  #mat_old is the interactions that the elderly have with all other populations
