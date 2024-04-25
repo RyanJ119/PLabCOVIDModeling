@@ -71,17 +71,13 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     dimensions = np.shape(a)
     rows, columns = dimensions
     mat_old= a.copy()
-    mat_only_old=a.copy()
     
     for i in range(rows):
         for j in range(columns):
             mat_old[i][j] = mat_old[i][j]*tau1
-            mat_only_old[i][j] = mat_old[i][j]*tau1
             if i<rows-1:
                 if j<columns-1:
                     mat_old[i][j]=0  #mat_old is the interactions that the elderly have with all other populations
-            if i<rows-1 or j<columns-1:
-                        mat_only_old[i][j] =0
     mat_school=a.copy()
     
     for i in range(rows):
@@ -90,19 +86,13 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             if (i != 0 and i!=1 and i!=2 and i!=3 ) or (j != 0 and j!=1 and j!=2 and j!=3):
                 mat_school[i][j]=0             #mat_school is the interactions children have with each other
   
-    matrix4 = a -    (mat_old +   mat_school  ) 
-    matrix_only_young= matrix4.copy()
-    for i in range(rows):
-        for j in range(columns):
-            if (i<4 or j<4 or i==7 or j ==7):
-                matrix_only_young[i][j]=0
+    matrix4 = a -    (mat_old +   mat_school  )
     #matrix4=a.copy()
 #####################################
 
     
     ## Discretization of dynamics with implicit RK2
-    dSdt = ( -1*( ((1-w[:,2]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) + ((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4-matrix_only_young))) + ((1-w[:,2])*(1-w[:,2]) * beta * S * (mtimes(I,matrix_only_young))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
-    #dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
+    dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( (beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +(  beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
    
@@ -113,8 +103,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     #dSdt = -u * beta * S * ((mtimes(I,a)) / repmat(mtimes(tab_N, a), N+1, 1))  #*(S>=0)*(E>=0)*(I>=0)
     #dSdt[np.isnan(dSdt)] = 0
     
-    dEdt = ( ((1-w[:,2]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) + ((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4-matrix_only_young))) + ((1-w[:,2])*(1-w[:,2]) * beta * S * (mtimes(I,matrix_only_young))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
-    #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
+    dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ( beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
    
