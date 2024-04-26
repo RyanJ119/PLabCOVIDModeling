@@ -14,7 +14,20 @@ import os
 from datetime import datetime
 import math
 
-model="ModelV3"
+model="Adding_Transports"
+
+commuting_proportions=np.array([
+    0.0,
+    0.02,
+    0.0636524635249281,
+    0.0636524635249281,
+    0.13547943082912334,
+    0.13547943082912334,
+    0.11524207023278385,
+    0.11524207023278385,
+    0.07578589407205107,
+    0.07578589407205107
+])
 
 def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
                           init_E=None, init_I=None, init_R=None, init_V=None,
@@ -36,9 +49,9 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     u_max= problem.R0 * gamma  # bounds on u: if u_min=u_max then no lockdown
     upper_bound = inf
     w_min=0 #w_min is the min lockdown 
-    w_min = [0, 0, 0]
+    w_min = [0, 0, 0, 0]
     #w_max=.9  ## w_max is the max lockdown 
-    w_max=[.6, .8, 1]  ## w_max is the minimum lockdown 
+    w_max=[.6, .8, 1, 1]  ## w_max is the minimum lockdown 
     beta = problem.R0 * gamma
     death_rates = problem.death_rates
     initial_S = problem.initial_S
@@ -46,7 +59,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     initial_I = problem.initial_I
     initial_R = problem.initial_R
    # print(problem.initial_E)
-    numControls = 3
+    numControls = 4
     tab_N= problem.population
     num_age_groups = tab_N.shape[1]
 
@@ -97,7 +110,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
 
     
     ## Discretization of dynamics with implicit RK2
-    dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
+    dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,(mat_old-mat_only_old)*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions)))) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions)))) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions))))) +(beta * S * (mtimes(I,matrix4*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions))))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
+    #dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( (beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +(  beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
    
@@ -108,7 +122,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     #dSdt = -u * beta * S * ((mtimes(I,a)) / repmat(mtimes(tab_N, a), N+1, 1))  #*(S>=0)*(E>=0)*(I>=0)
     #dSdt[np.isnan(dSdt)] = 0
     
-    dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
+    dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,(mat_old-mat_only_old)*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions)))) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions)))) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions))))) +(beta * S * (mtimes(I,matrix4*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions))))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
+    #dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
     #dEdt = ( ( ( beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
    
@@ -137,19 +152,19 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     
     ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
-    gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
+    gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2], w[:,3])
    # lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_min * np.ones(3*(N+1)))   # w_min=0
    # upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max * np.ones(3*(N+1)))
     
-    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_min[0]*np.ones((N+1)), w_min[1]*np.ones((N+1)), w_min[2]*np.ones((N+1))), axis=None))   # w_min=0
-    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_max[0]*np.ones((N+1)), w_max[1]*np.ones((N+1)), w_max[2]*np.ones((N+1))), axis=None)) 
+    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_min[0]*np.ones((N+1)), w_min[1]*np.ones((N+1)), w_min[2]*np.ones((N+1)), w_min[3]*np.ones((N+1))), axis=None))   # w_min=0
+    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_max[0]*np.ones((N+1)), w_max[1]*np.ones((N+1)), w_max[2]*np.ones((N+1)), w_max[3]*np.ones((N+1))), axis=None)) 
     #print(upper_bound_gg)
     #print(upper_bound_gg)
     #print(sum2(w))
     ## Cost
     cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
 
-    cost_lockdown=sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0]+w[:,2]-w[:,0]*w[:,2])) + sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]+w[:,2]-w[:,1]*w[:,2]))+ sum2((sum1( matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
+    cost_lockdown=sum2((sum1( mat_old*(1-commuting_proportions)) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0]+w[:,2]-w[:,0]*w[:,2])) + sum2((sum1( mat_school*(1-commuting_proportions)) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]+w[:,2]-w[:,1]*w[:,2]))+ sum2((sum1( matrix4*(1-commuting_proportions)) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))+sum2((sum1( mat_old*commuting_proportions) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-(1-w[:,0])*(1-w[:,2])*(1-w[:,3]))) + sum2((sum1( mat_school*commuting_proportions) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(1-(1-w[:,1])*(1-w[:,2])*(1-w[:,3])))+ sum2((sum1( matrix4*commuting_proportions) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(1-(1-w[:,2])*(1-w[:,3])))
     #cost_lockdown=sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))
     cost_end = sum2(I[N, :] * death_rates)*cost_per_death*90
     cost_all=cost_deaths+cost_lockdown+cost_end
