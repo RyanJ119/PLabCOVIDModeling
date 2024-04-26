@@ -5,7 +5,8 @@ import seaborn as sb
 import pandas as pd
 import csv
 
-
+control_names=["Lockdown of Elderly", "Lockdown of School Age", "Lockdown of Public","Closure of public transports"]
+path_names=["Old","School","GenPop","PubTransports"]
 def generate_abstact_plot(
         directory_path, name, cost, series, beta, percentage_essential, problem, show=False
 ):
@@ -39,58 +40,23 @@ def generate_abstact_plotU(
     plt.rcParams.update({'font.size': 22})
     t = np.linspace(0, problem.time_horizon, problem.N + 1)
     t=t[0:160]
-    plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 0])
-    plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
-    plt.ylim(bottom=-.5)  # adjust the bottom leaving top unchanged
-    plt.title(
-        f"Lockdown of Elderly R0={problem.R0}"
-    )
-    plt.legend()
-    plt.savefig(
-        os.path.join(directory_path, f"Old-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
-    if show:
-        plt.show()
-    plt.close()
-    
-    plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 1])
-    plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
-    plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
-    plt.title(
-        f"Lockdown of School Age R0={problem.R0}"
-    )
-    plt.legend()
-    plt.savefig(
-        os.path.join(directory_path, f"School-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
-    if show:
-        plt.show()
-    plt.close()
-    
-    
-
-    plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 2])
-    plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
-    plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
-    plt.title(
-        f"Lockdown of Public R0={problem.R0} "
-    )
-    plt.legend()
-    plt.savefig(
-        os.path.join(directory_path, f"GenPop-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
-    if show:
-        plt.show()
-    plt.close()
+    for control in range(len(series[0,:])):
+        plt.rcParams["figure.figsize"] = (8, 8)
+        plt.plot(t, series[:, control])
+        plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
+        plt.ylim(bottom=-.5)  # adjust the bottom leaving top unchanged
+        plt.title(
+            f"{control_names[control]} R0={problem.R0}"
+        )
+        plt.legend()
+        plt.savefig(
+            os.path.join(directory_path, f"{path_names[control]}-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
+            dpi=300,
+            bbox_inches="tight",
+        )
+        if show:
+            plt.show()
+        plt.close()
 
     
 def print_heat_map(
