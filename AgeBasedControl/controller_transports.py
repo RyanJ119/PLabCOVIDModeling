@@ -26,6 +26,7 @@ commuting_proportions=np.array([
     0.11524207023278385,
     0.11524207023278385,
     0.07578589407205107,
+    0.07578589407205107,
     0.07578589407205107
 ])
 
@@ -110,7 +111,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
 
     
     ## Discretization of dynamics with implicit RK2
-    dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,(mat_old-mat_only_old)*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions)))) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions)))) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions))))) +(beta * S * (mtimes(I,matrix4*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions))))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
+    dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,(mat_old-mat_only_old))) ) +((1-w[:,0])*(1-w[:,0]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,mat_school))) +(beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( (beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +(  beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
@@ -122,7 +123,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     #dSdt = -u * beta * S * ((mtimes(I,a)) / repmat(mtimes(tab_N, a), N+1, 1))  #*(S>=0)*(E>=0)*(I>=0)
     #dSdt[np.isnan(dSdt)] = 0
     
-    dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,(mat_old-mat_only_old)*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions)))) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions)))) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions))))) +(beta * S * (mtimes(I,matrix4*((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*commuting_proportions+(1-commuting_proportions))))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
+    dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,(mat_old-mat_only_old))) ) +((1-w[:,0])*(1-w[:,0]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,mat_school))) +(beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
     #dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
     #dEdt = ( ( ( beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
