@@ -126,6 +126,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     ## Discretization of dynamics with implicit RK2
     dSdt = ( -1*(
+        # The following block corresponds to the interactions that happen when commuting
         (1-w[:,3])*
         (
             ((1-w[:,2])*(1-w[:,2]) *(1-w[:,0]) * beta * S * (mtimes(I,mat_old_transport-mat_only_old_transport)))
@@ -133,6 +134,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             +((1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport))) 
             +(beta * S * (mtimes(I,matrix4_transport)))
             )
+        # The following two blocks correspond to the interactions indirectly impacted by
+        # the Public Transports, either through the susceptible or the infected
         +(
             (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta* ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_old-mat_only_old)) )) 
             +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_only_old)) ) 
@@ -151,6 +154,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
             +(beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
             )
+        # The following two blocks correspond to the interactions indirectly impacted by
+        # the Public Transports, both through the susceptible and the infected
         +(1-w[:,3])*(1-w[:,3])*
         (
             ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
