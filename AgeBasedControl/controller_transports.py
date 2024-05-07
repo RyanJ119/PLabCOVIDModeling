@@ -30,6 +30,8 @@ commuting_proportions=np.array([
     0.07578589407205107
 ])
 
+omega=0.2 # This is the proportion of interactions a Commute users has in the Public Transports
+
 def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
                           init_E=None, init_I=None, init_R=None, init_V=None,
                           init_w=None, init_u=None):
@@ -105,14 +107,58 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             if (i != 0 and i!=1 and i!=2 and i!=3 ) or (j != 0 and j!=1 and j!=2 and j!=3):
                 mat_school[i][j]=0             #mat_school is the interactions children have with each other
   
-    matrix4 = a -    (mat_old +   mat_school  ) 
+    matrix4 = a -    (mat_old +   mat_school  )
+    
+    mat_old_transport=omega*commuting_proportions*mat_old.copy()
+    mat_old-=mat_old_transport
+    
+    mat_only_old_transport=omega*commuting_proportions*mat_only_old.copy()
+    mat_only_old-=mat_only_old_transport
+    
+    mat_school_transport=omega*commuting_proportions*mat_school.copy()
+    mat_school-=mat_school_transport
+    
+    matrix4_transport=omega*commuting_proportions*matrix4.copy()
+    matrix4-=matrix4_transport
     #matrix4=a.copy()
 #####################################
 
     
     ## Discretization of dynamics with implicit RK2
-    dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,(mat_old-mat_only_old))) ) +((1-w[:,0])*(1-w[:,0]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,mat_school))) +(beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
-    #dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
+    dSdt = ( -1*(
+        (1-w[:,3])*
+        (
+            ((1-w[:,2])*(1-w[:,2]) *(1-w[:,0]) * beta * S * (mtimes(I,mat_old_transport-mat_only_old_transport)))
+            +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old_transport)))
+            +((1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport))) 
+            +(beta * S * (mtimes(I,matrix4_transport)))
+            )
+        +(
+            (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta* ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_old-mat_only_old)) )) 
+            +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_only_old)) ) 
+            +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_school))) 
+            +(beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,matrix4)))
+            )
+        +(1-w[:,3])*
+        (
+            ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_old-mat_only_old)) )) 
+            +((1-w[:,0])*(1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_only_old)) ) 
+            +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_school))) 
+            +(beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,matrix4))) )
+            
+            +((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
+            +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_only_old)) ) 
+            +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
+            +(beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
+            )
+        +(1-w[:,3])*(1-w[:,3])*
+        (
+            ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
+            +((1-w[:,0])*(1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_only_old)) ) 
+            +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
+            +(beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
+            )
+        )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( (beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +(  beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
    
@@ -123,8 +169,41 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     #dSdt = -u * beta * S * ((mtimes(I,a)) / repmat(mtimes(tab_N, a), N+1, 1))  #*(S>=0)*(E>=0)*(I>=0)
     #dSdt[np.isnan(dSdt)] = 0
     
-    dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,(mat_old-mat_only_old))) ) +((1-w[:,0])*(1-w[:,0]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,mat_school))) +(beta * (((0.25*(1-w[:,3])+0.75*(1-w[:,3])*(1-w[:,3]))*((commuting_proportions*S.T).T)+(((1-commuting_proportions)*S.T).T))) * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
-    #dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
+    dEdt = (
+        (1-w[:,3])*
+        (
+            ((1-w[:,2])*(1-w[:,2]) *(1-w[:,0]) * beta * S * (mtimes(I,mat_old_transport-mat_only_old_transport)))
+            +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old_transport)))
+            +((1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport))) 
+            +(beta * S * (mtimes(I,matrix4_transport)))
+            )
+        +(
+            (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta* ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_old-mat_only_old)) )) 
+            +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_only_old)) ) 
+            +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_school))) 
+            +(beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,matrix4)))
+            )
+        +(1-w[:,3])*
+        (
+            ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_old-mat_only_old)) )) 
+            +((1-w[:,0])*(1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_only_old)) ) 
+            +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_school))) 
+            +(beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,matrix4))) )
+            
+            +((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
+            +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_only_old)) ) 
+            +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
+            +(beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
+            )
+        +(1-w[:,3])*(1-w[:,3])*
+        (
+            ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
+            +((1-w[:,0])*(1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_only_old)) ) 
+            +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
+            +(beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
+            )
+        )/ repmat(mtimes(tab_N, a), N+1, 1)
+    - delta * E
     #dEdt = ( ( ( beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
    
@@ -165,7 +244,15 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     ## Cost
     cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
 
-    cost_lockdown=sum2((sum1( mat_old*(1-commuting_proportions)) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0]+w[:,2]-w[:,0]*w[:,2])) + sum2((sum1( mat_school*(1-commuting_proportions)) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]+w[:,2]-w[:,1]*w[:,2]))+ sum2((sum1( matrix4*(1-commuting_proportions)) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))+sum2((sum1( mat_old*commuting_proportions) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-(1-w[:,0])*(1-w[:,2])*(1-w[:,3]))) + sum2((sum1( mat_school*commuting_proportions) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(1-(1-w[:,1])*(1-w[:,2])*(1-w[:,3])))+ sum2((sum1( matrix4*commuting_proportions) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(1-(1-w[:,2])*(1-w[:,3])))
+    cost_lockdown=(
+        sum2((sum1(commuting_proportions * mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-(1-w[:,0])*(1-w[:,2])*(1-w[:,3]))) 
+        + sum2((sum1(commuting_proportions * mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(1-(1-w[:,1])*(1-w[:,2])*(1-w[:,3])))
+        + sum2((sum1(commuting_proportions * matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(1-(1-w[:,2])*(1-w[:,3])))
+        
+        + sum2((sum1((1-commuting_proportions) * mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-(1-w[:,0])*(1-w[:,2]))) 
+        + sum2((sum1((1-commuting_proportions) * mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(1-(1-w[:,1])*(1-w[:,2])))
+        + sum2((sum1((1-commuting_proportions) * matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(1-w[:,2]))
+        )
     #cost_lockdown=sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))
     cost_end = sum2(I[N, :] * death_rates)*cost_per_death*90
     cost_all=cost_deaths+cost_lockdown+cost_end
