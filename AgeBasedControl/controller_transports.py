@@ -134,14 +134,16 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             +((1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport))) 
             +(beta * S * (mtimes(I,matrix4_transport)))
             )
-        # The following two blocks correspond to the interactions indirectly impacted by
-        # the Public Transports, either through the susceptible or the infected
+        # The following block corresponds to the interactions that are not impacted
+        # by the public transports
         +(
             (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta* ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_old-mat_only_old)) )) 
             +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_only_old)) ) 
             +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_school))) 
             +(beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,matrix4)))
             )
+        # The following two blocks correspond to the interactions indirectly impacted by
+        # the Public Transports, either through the susceptible or the infected
         +(1-w[:,3])*
         (
             ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_old-mat_only_old)) )) 
@@ -175,6 +177,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     #dSdt[np.isnan(dSdt)] = 0
     
     dEdt = (
+        # The following block corresponds to the interactions that happen when commuting
         (1-w[:,3])*
         (
             ((1-w[:,2])*(1-w[:,2]) *(1-w[:,0]) * beta * S * (mtimes(I,mat_old_transport-mat_only_old_transport)))
@@ -182,12 +185,16 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             +((1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport))) 
             +(beta * S * (mtimes(I,matrix4_transport)))
             )
+        # The following block corresponds to the interactions that are not impacted
+        # by the public transports
         +(
             (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta* ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_old-mat_only_old)) )) 
             +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_only_old)) ) 
             +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_school))) 
             +(beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,matrix4)))
             )
+        # The following two blocks correspond to the interactions indirectly impacted by
+        # the Public Transports, either through the susceptible or the infected
         +(1-w[:,3])*
         (
             ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_old-mat_only_old)) )) 
@@ -200,6 +207,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
             +(beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
             )
+        # The following two blocks correspond to the interactions indirectly impacted by
+        # the Public Transports, both through the susceptible and the infected
         +(1-w[:,3])*(1-w[:,3])*
         (
             ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
@@ -207,8 +216,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
             +(beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
             )
-        )/ repmat(mtimes(tab_N, a), N+1, 1)
-    - delta * E
+        )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
     #dEdt = ( ( ( beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
    
