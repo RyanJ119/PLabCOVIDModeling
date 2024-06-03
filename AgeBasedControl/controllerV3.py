@@ -244,9 +244,9 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
 
     
     ## Discretization of dynamics with implicit RK2
-    dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
-    
-    dEdt = (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
+    dSdt = ( -1*( ((1-w[:,2]) *(1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) *(1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(1-w[:,2]) *(1-w[:,2]) *(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
+        
+    dEdt = ( ((1-w[:,2]) *(1-w[:,0]) * beta * S * (mtimes(I,mat_old-mat_only_old)) ) +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old)) ) +((1-w[:,1]) *(1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(1-w[:,2]) *(1-w[:,2]) *(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
     
     dIdt = delta * E - gamma * I 
     
@@ -276,7 +276,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_max[0]*np.ones((N+1)), w_max[1]*np.ones((N+1)), w_max[2]*np.ones((N+1))), axis=None)) 
     
     cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death
-    cost_lockdown=sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0]+w[:,2]-w[:,0]*w[:,2])) + sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]+w[:,2]-w[:,1]*w[:,2]))+ sum2((sum1( matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
+    cost_lockdown=sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0])) + sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))+ sum2((sum1( matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
     cost_end = sum2(I[N, :] * death_rates)*cost_per_death*90
     cost_all=cost_deaths+cost_lockdown+cost_end
 
