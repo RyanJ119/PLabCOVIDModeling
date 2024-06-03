@@ -48,20 +48,15 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     cost_per_death= 1500000
     tau1 = 1 #4/5
     tau2 = 1 #2/3
-    u_min= problem.R0 * gamma
-    u_max= problem.R0 * gamma  # bounds on u: if u_min=u_max then no lockdown
     upper_bound = inf
-    w_min=0 #w_min is the min lockdown 
     w_min = [0, 0, 0, 0]
-    #w_max=.9  ## w_max is the max lockdown 
-    w_max=[1, 1, 1, 1]  ## w_max is the minimum lockdown 
+    w_max=[1, 1, 1, 1]  
     beta = problem.R0 * gamma
     death_rates = problem.death_rates
     initial_S = problem.initial_S
     initial_E = problem.initial_E
     initial_I = problem.initial_I
     initial_R = problem.initial_R
-   # print(problem.initial_E)
     numControls = 4
     tab_N= problem.population
     num_age_groups = tab_N.shape[1]
@@ -79,8 +74,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     dEdt=MX.sym('dEdt', N+1, num_age_groups)
     dIdt=MX.sym('dIdt', N+1, num_age_groups)
     dRdt=MX.sym('dRdt', N+1, num_age_groups)
-   
-    u=MX.sym('u',N+1)
+
     w=MX.sym('w',N+1, numControls)
 
 ################################### Building Matrices for age based control
@@ -225,14 +219,11 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
     gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2],w[:,3])
-   # lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_min * np.ones(3*(N+1)))   # w_min=0
-   # upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max * np.ones(3*(N+1)))
     
     lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_min[0]*np.ones((N+1)), w_min[1]*np.ones((N+1)), w_min[2]*np.ones((N+1)), w_min[3]*np.ones((N+1))), axis=None))   # w_min=0
     upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_max[0]*np.ones((N+1)), w_max[1]*np.ones((N+1)), w_max[2]*np.ones((N+1)), w_max[3]*np.ones((N+1))), axis=None)) 
 
-    cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
-
+    cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death 
     cost_lockdown=(
         sum2((sum1(commuting_proportions * mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-(1-w[:,0])*(1-w[:,3]))) 
         + sum2((sum1(commuting_proportions * mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(1-(1-w[:,1])*(1-w[:,3])))
@@ -242,55 +233,20 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         + sum2((sum1((1-commuting_proportions) * mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))
         + sum2((sum1((1-commuting_proportions) * matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
         )
-    #cost_lockdown=sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))
     cost_end = sum2(I[N, :] * death_rates)*cost_per_death*90
     cost_all=cost_deaths+cost_lockdown+cost_end
-
-   # print(cost_deaths)
-    
-    #print(cost_lockdown)
-    
-    #print(cost_lockdown)
-
-
-
-
-
-
-
-
-
-
 
 
     ## Here we compute the dynamics for the control associated to a starting point
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     print("Computation of the starting point:")
 
     if init_S is None:
-    	## [Manu] Below, we choose a very rough initialization, but it would be better to choose adequate "intuitive" controls
-    	## (defined bang-bang "by hand") and generate the corresponding state variables S, E, I, R, V by Euler explicit method.
         init_S=np.ones((N+1,1))* 2/3*initial_S
         init_E=np.ones((N+1,1))*2/3*initial_E
         init_I=np.ones((N+1,1))* 2/3*initial_I
         init_R=np.ones((N+1,1))* 2/3*initial_R
-        
-        
-        init_u=(u_min+u_max)/2 * np.ones(N+1)
-        ## [Manu] I have updated the rough way here to initialize w:
+
         init_w=0.5*np.ones((N+1,numControls),dtype=float)
         init_w[:,:3]=pd.DataFrame.to_numpy(pd.read_csv('../Starting point/w.csv', delimiter=','))
 
@@ -322,31 +278,22 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     upper_bound_R = upper_bound * np.ones((N+1,num_age_groups))
     upper_bound_R[0,:] = initial_R
 
-
-
-    lower_bound_u = u_min*np.ones(N+1)
-    upper_bound_u = u_max*np.ones(N+1)
     lower_bound_w = init_w
     upper_bound_w = init_w
     
-    #upper_bound_w[0:8, :] = 0   ## [Manu] this constraint means that we switch off the two first controls, right?
-    #print(upper_bound_w)
-    #print(upper_bound_w)
     lower_bound_xu = vertcat(
         reshape(lower_bound_S,-1,1),
         reshape(lower_bound_E,-1,1),
         reshape(lower_bound_I,-1,1),
         reshape(lower_bound_R,-1,1),
-        reshape(lower_bound_w,-1,1),
-        lower_bound_u)
+        reshape(lower_bound_w,-1,1))
 
     upper_bound_xu = vertcat(
         reshape(upper_bound_S,-1,1),
         reshape(upper_bound_E,-1,1),
         reshape(upper_bound_I,-1,1),
         reshape(upper_bound_R,-1,1),
-        reshape(upper_bound_w,-1,1),
-        upper_bound_u)
+        reshape(upper_bound_w,-1,1))
 
     ## Solve
     optim_problem = {
@@ -355,27 +302,14 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             reshape(E, -1, 1),
             reshape(I, -1, 1),
             reshape(R, -1, 1),
-            reshape(w, -1, 1),
-            u,),
+            reshape(w, -1, 1)),
         'f' : cost_all, # You might change the cost here.
         'g' : gg}
     options = {'error_on_fail': False}
-#     options['ipopt.linear_solver'] = 'mumps'  # ma27
-#     options['ipopt.hessian_approximation'] = 'exact'   #'exact', 'limited-memory'
-#     options['ipopt.tol'] = 1e-4
-#     options['ipopt.acceptable_tol'] = 1e-4
-#     options['ipopt.acceptable_constr_viol_tol'] = 1e-4
-    # # options['ipopt.print_level'] = 0
     options['ipopt.print_frequency_iter'] = 100
     options['print_time'] = 0
-    # # options['ipopt.warm_start_init_point'] = 'yes'
     options['ipopt.max_iter'] = 10000
-    # options['ipopt.expect_infeasible_problem'] = "no"
-    # options['ipopt.bound_frac'] = 0.5
-    # options['ipopt.start_with_resto'] = "no"
-    # options['ipopt.required_infeasibility_reduction'] = 0.85
-    # options['ipopt.acceptable_iter'] = 8
-    solver = casadi.nlpsol('solver', 'ipopt', optim_problem, options)
+    solver = nlpsol('solver', 'ipopt', optim_problem, options)
     result = solver(x0=init_xu,                   ## initialization
                     lbx=lower_bound_xu,           ## lower bounds on the global unknown x
                     ubx=upper_bound_xu,           ## upper bounds on the global unknown x
