@@ -501,8 +501,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         reshape(init_E,-1,1),
         reshape(init_I,-1,1),
         reshape(init_R,-1,1),
-        reshape(init_w,-1,1),
-        init_u.copy())
+        reshape(init_w,-1,1))
     print(init_w)
 
     lower_bound_S = np.zeros((N+1,num_age_groups))
@@ -526,9 +525,6 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     upper_bound_R[0,:] = initial_R
 
 
-
-    lower_bound_u = u_min*np.ones(N+1)
-    upper_bound_u = u_max*np.ones(N+1)
     lower_bound_w = w_min*np.ones((N+1,numControls))
     upper_bound_w = w_max*np.ones((N+1,numControls))
     
@@ -540,16 +536,14 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         reshape(lower_bound_E,-1,1),
         reshape(lower_bound_I,-1,1),
         reshape(lower_bound_R,-1,1),
-        reshape(lower_bound_w,-1,1),
-        lower_bound_u)
+        reshape(lower_bound_w,-1,1))
 
     upper_bound_xu = vertcat(
         reshape(upper_bound_S,-1,1),
         reshape(upper_bound_E,-1,1),
         reshape(upper_bound_I,-1,1),
         reshape(upper_bound_R,-1,1),
-        reshape(upper_bound_w,-1,1),
-        upper_bound_u)
+        reshape(upper_bound_w,-1,1))
 
     ## Solve
     optim_problem = {
@@ -578,7 +572,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     # options['ipopt.start_with_resto'] = "no"
     # options['ipopt.required_infeasibility_reduction'] = 0.85
     # options['ipopt.acceptable_iter'] = 8
-    solver = casadi.nlpsol('solver', 'ipopt', optim_problem, options)
+    solver = nlpsol('solver', 'ipopt', optim_problem, options)
     result = solver(x0=init_xu,                   ## initialization
                     lbx=lower_bound_xu,           ## lower bounds on the global unknown x
                     ubx=upper_bound_xu,           ## upper bounds on the global unknown x
