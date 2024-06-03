@@ -526,10 +526,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
 
     lower_bound_w = w_min*np.ones((N+1,numControls))
     upper_bound_w = w_max*np.ones((N+1,numControls))
-    
-    #upper_bound_w[0:8, :] = 0   ## [Manu] this constraint means that we switch off the two first controls, right?
-    #print(upper_bound_w)
-    #print(upper_bound_w)
+
     lower_bound_xu = vertcat(
         reshape(lower_bound_S,-1,1),
         reshape(lower_bound_E,-1,1),
@@ -551,26 +548,14 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
             reshape(E, -1, 1),
             reshape(I, -1, 1),
             reshape(R, -1, 1),
-            reshape(w, -1, 1),
-            u,),
+            reshape(w, -1, 1),),
         'f' : cost_all, # You might change the cost here.
         'g' : gg}
     options = {'error_on_fail': False}
-#     options['ipopt.linear_solver'] = 'mumps'  # ma27
-#     options['ipopt.hessian_approximation'] = 'exact'   #'exact', 'limited-memory'
-#     options['ipopt.tol'] = 1e-4
-#     options['ipopt.acceptable_tol'] = 1e-4
-#     options['ipopt.acceptable_constr_viol_tol'] = 1e-4
-    # # options['ipopt.print_level'] = 0
     options['ipopt.print_frequency_iter'] = 100
     options['print_time'] = 0
-    #options['ipopt.warm_start_init_point'] = 'yes'
     options['ipopt.max_iter'] = 10000
-    # options['ipopt.expect_infeasible_problem'] = "no"
     options['ipopt.slack_bound_frac'] = 0.5
-    # options['ipopt.start_with_resto'] = "no"
-    # options['ipopt.required_infeasibility_reduction'] = 0.85
-    # options['ipopt.acceptable_iter'] = 8
     solver = nlpsol('solver', 'ipopt', optim_problem, options)
     result = solver(x0=init_xu,                   ## initialization
                     lbx=lower_bound_xu,           ## lower bounds on the global unknown x
@@ -587,10 +572,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     I=reshape(I,N+1, num_age_groups)
     R=xu[(3 * num_age_groups * (N+1)):(4 * num_age_groups * (N+1))]
     R=reshape(R,N+1, num_age_groups)
-   # V=xu[(4 * num_age_groups * (N+1)):(5 * num_age_groups * (N+1))]
-   # V=reshape(V,N+1, num_age_groups)
     w=xu[(4 * num_age_groups * (N+1)):(4 * num_age_groups * (N+1))+(numControls*(N+1))]
     w=reshape(w,N+1,numControls)
-    u=xu[((4 * num_age_groups * (N+1))+numControls * (N+1)):]
     print(cost,cost-sum1(sum2(w[:N,3]*w[:N,3]+w[1:,3]*w[1:,3]-2*w[:N,3]*w[1:,3]))/N*10**7)
     return S, E, I, R, w,cost
