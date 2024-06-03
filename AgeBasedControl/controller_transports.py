@@ -34,7 +34,7 @@ omega=0.2 # This is the proportion of interactions a Commute users has in the Pu
 
 def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
                           init_E=None, init_I=None, init_R=None, init_V=None,
-                          init_w=None, init_u=None):
+                          init_w=None):
     ## Parameters
     T = problem.time_horizon
     N = problem.N
@@ -255,8 +255,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         reshape(init_E,-1,1),
         reshape(init_I,-1,1),
         reshape(init_R,-1,1),
-        reshape(init_w,-1,1),
-        init_u.copy())
+        reshape(init_w,-1,1))
 
     lower_bound_S = np.zeros((N+1,num_age_groups))
     lower_bound_S[0,:] = initial_S
