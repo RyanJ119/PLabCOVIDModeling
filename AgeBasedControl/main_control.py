@@ -2,8 +2,8 @@ import numpy as np
 from utils import transform_to_have_essential_workers, read_data_from_csv, make_result_directory_for_simulation, Problem
 from plotting import generate_all_plots
 from plotting import print_heat_map
-from simulator import simulate
-from controllerV2 import solve_control_problem
+#from simulator import simulate
+from controllerV2 import solve_control_problem, model
 import csv
 
 import time
@@ -41,7 +41,7 @@ def main():
     cost_lockdown = 70
     num_age_groups = len(death_rates[0])
     time_horizon = 180
-matrices = [(0.75,  "../data/InteractionMatrix_beta_0_75.csv")]
+    matrices = [(0.75,  "../data/InteractionMatrix_beta_0_75.csv")]
     R0s = [1.7]
     percentages_essential = [0]
     ordering = np.flip(list(range(num_age_groups)))
@@ -98,11 +98,11 @@ matrices = [(0.75,  "../data/InteractionMatrix_beta_0_75.csv")]
                
          
                     S, E, I, R, w, cost = solve_control_problem(problem, max_num_vaccines_per_day)
-                    dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, "opt_control_")
+                    dir_path = make_result_directory_for_simulation(state_id, contact_matrix_pair[0], R0, percentage_essential, model, "opt_control_")
                     print('deaths:')
                     print(sum(sum(np.array(R)[-1,:]*death_rates)))
                     generate_all_plots(
-                        dir_path, np.array(w), np.array(S), np.array(E), np.array(I), np.array(R), cost,  contact_matrix_pair[0], percentage_essential, cost_lockdown, problem, False
+                        dir_path, np.array(w), np.array(S), np.array(E), np.array(I), np.array(R), cost,  contact_matrix_pair[0], percentage_essential, cost_lockdown, problem, False,model=="Former model"
                     )
 
                     
