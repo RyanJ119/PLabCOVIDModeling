@@ -18,7 +18,7 @@ model="Adding_Transports"
 
 commuting_proportions=np.array([
     0.0,
-    0.02,
+    0.0,
     0.0636524635249281,
     0.0636524635249281,
     0.13547943082912334,
@@ -120,109 +120,88 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     matrix4_transport=omega*commuting_proportions*matrix4.copy()
     matrix4-=matrix4_transport
-    #matrix4=a.copy()
 #####################################
 
     
     ## Discretization of dynamics with implicit RK2
-    dSdt = ( -1*(
-        # The following block corresponds to the interactions that happen when commuting
-        (1-w[:,3])*
-        (
-            ((1-w[:,2])*(1-w[:,2]) *(1-w[:,0]) * beta * S * (mtimes(I,mat_old_transport-mat_only_old_transport)))
-            +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old_transport)))
-            +((1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport))) 
-            +(beta * S * (mtimes(I,matrix4_transport)))
-            )
-        # The following block corresponds to the interactions that are not impacted
-        # by the public transports
-        +(
-            (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta* ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_old-mat_only_old)) )) 
-            +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_only_old)) ) 
-            +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_school))) 
-            +(beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,matrix4)))
-            )
-        # The following two blocks correspond to the interactions indirectly impacted by
-        # the Public Transports, either through the susceptible or the infected
-        +(1-w[:,3])*
-        (
-            ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_old-mat_only_old)) )) 
-            +((1-w[:,0])*(1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_only_old)) ) 
-            +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_school))) 
-            +(beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,matrix4))) )
-            
-            +((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
-            +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_only_old)) ) 
-            +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
-            +(beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
-            )
-        # The following two blocks correspond to the interactions indirectly impacted by
-        # the Public Transports, both through the susceptible and the infected
-        +(1-w[:,3])*(1-w[:,3])*
-        (
-            ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
-            +((1-w[:,0])*(1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_only_old)) ) 
-            +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
-            +(beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
-            )
-        )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
-    #dSdt = ( -1*( (beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
-    #dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +(  beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
-   
-   # dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +(beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #Elderly Only
+    dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( 
+         # The following block corresponds to the interactions that happen when commuting
+
+         (1-w[:,3])*(
+            (1-w[:,0]) * beta * S * mtimes(I,mat_old_transport-mat_only_old_transport)
+            +(1-w[:,0])*(1-w[:,0]) * beta * S * mtimes(I,mat_only_old_transport) 
+            +(1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport)) 
+            +beta * S * mtimes(I,matrix4_transport) 
+         )
+        # The following blocks correspond to the interactions that are indirectly impacted by the closure of public transports in a linear way
+        +(1-w[:,3])*(
+            (1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*commuting_proportions).T * (mtimes((I.T*(1-commuting_proportions)).T,mat_school))
+            +beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,matrix4) 
+
+            +(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*(1-commuting_proportions)).T * (mtimes((I.T*commuting_proportions).T,mat_school)) 
+            +beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,matrix4) 
+         )
+         # The following blocks correspond to the interactions that are indirectly impacted by the closure of public transports in a quadratic way
+        +(1-w[:,3])*(1-w[:,3])*(
+            (1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*commuting_proportions).T * (mtimes((I.T*commuting_proportions).T,mat_school)) 
+            +beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,matrix4) 
+         )
+         # The following blocks correspond to the interactions that are not impacted by the closure of public transports
+         +(
+            (1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*(1-commuting_proportions)).T * (mtimes((I.T*(1-commuting_proportions)).T,mat_school)) 
+            +beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,matrix4) 
+         )
+
+
+         )/ repmat(mtimes(tab_N, a), N+1, 1) )
     
-    #dSdt = ( -1*( ( beta * S * (mtimes(I,mat_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #School closure only
-    #dSdt = ( -1*( ( (1-w[:,1])*beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +(beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #School closure only
-    #dSdt = -u * beta * S * ((mtimes(I,a)) / repmat(mtimes(tab_N, a), N+1, 1))  #*(S>=0)*(E>=0)*(I>=0)
-    #dSdt[np.isnan(dSdt)] = 0
+    dEdt = (1-w[:,2])*(1-w[:,2]) *( 
+         # The following block corresponds to the interactions that happen when commuting
+
+         (1-w[:,3])*(
+            (1-w[:,0]) * beta * S * mtimes(I,mat_old_transport-mat_only_old_transport)
+            +(1-w[:,0])*(1-w[:,0]) * beta * S * mtimes(I,mat_only_old_transport) 
+            +(1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport)) 
+            +beta * S * mtimes(I,matrix4_transport) 
+         )
+        # The following blocks correspond to the interactions that are indirectly impacted by the closure of public transports in a linear way
+        +(1-w[:,3])*(
+            (1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*commuting_proportions).T * (mtimes((I.T*(1-commuting_proportions)).T,mat_school)) 
+            +beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,matrix4) 
+
+            +(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*(1-commuting_proportions)).T * (mtimes((I.T*commuting_proportions).T,mat_school)) 
+            +beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,matrix4) 
+         )
+         # The following blocks correspond to the interactions that are indirectly impacted by the closure of public transports in a quadratic way
+        +(1-w[:,3])*(1-w[:,3])*(
+            (1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*commuting_proportions).T * (mtimes((I.T*commuting_proportions).T,mat_school))
+            +beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,matrix4) 
+         )
+         # The following blocks correspond to the interactions that are not impacted by the closure of public transports
+         +(
+            (1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*(1-commuting_proportions)).T * (mtimes((I.T*(1-commuting_proportions)).T,mat_school)) 
+            +beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,matrix4) 
+         )
+
+
+         )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
     
-    dEdt = (
-        # The following block corresponds to the interactions that happen when commuting
-        (1-w[:,3])*
-        (
-            ((1-w[:,2])*(1-w[:,2]) *(1-w[:,0]) * beta * S * (mtimes(I,mat_old_transport-mat_only_old_transport)))
-            +((1-w[:,0])*(1-w[:,0]) * beta * S * (mtimes(I,mat_only_old_transport)))
-            +((1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport))) 
-            +(beta * S * (mtimes(I,matrix4_transport)))
-            )
-        # The following block corresponds to the interactions that are not impacted
-        # by the public transports
-        +(
-            (1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta* ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_old-mat_only_old)) )) 
-            +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_only_old)) ) 
-            +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,mat_school))) 
-            +(beta * ((1-commuting_proportions) * S.T).T * (mtimes(((1-commuting_proportions) * I.T).T,matrix4)))
-            )
-        # The following two blocks correspond to the interactions indirectly impacted by
-        # the Public Transports, either through the susceptible or the infected
-        +(1-w[:,3])*
-        (
-            ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_old-mat_only_old)) )) 
-            +((1-w[:,0])*(1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_only_old)) ) 
-            +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,mat_school))) 
-            +(beta * (commuting_proportions * S.T).T * (mtimes(((1-commuting_proportions)*I.T).T,matrix4))) )
-            
-            +((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
-            +((1-w[:,0])*(1-w[:,0]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_only_old)) ) 
-            +((1-w[:,1]) * beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
-            +(beta * ((1-commuting_proportions) * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
-            )
-        # The following two blocks correspond to the interactions indirectly impacted by
-        # the Public Transports, both through the susceptible and the infected
-        +(1-w[:,3])*(1-w[:,3])*
-        (
-            ((1-w[:,2])*(1-w[:,2]) *( ((1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_old-mat_only_old)) )) 
-            +((1-w[:,0])*(1-w[:,0]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_only_old)) ) 
-            +((1-w[:,1]) * beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,mat_school))) 
-            +(beta * (commuting_proportions * S.T).T * (mtimes((commuting_proportions*I.T).T,matrix4))) )
-            )
-        )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
-    #dEdt = ( ( ( beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
-    #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
-   
-   # dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E #Elderly Only
-    #dEdt = ( ( (beta * S * (mtimes(I,mat_old)))  + ((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E #School Only
-    #dEdt = ( ( ((1-w[:,1]) *beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E #School Only
     dIdt = delta * E - gamma * I 
     
     dRdt = gamma * I   #- sigma*R
@@ -245,16 +224,13 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     
     ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
-    gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2], w[:,3])
+    gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2],w[:,3])
    # lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_min * np.ones(3*(N+1)))   # w_min=0
    # upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max * np.ones(3*(N+1)))
     
     lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_min[0]*np.ones((N+1)), w_min[1]*np.ones((N+1)), w_min[2]*np.ones((N+1)), w_min[3]*np.ones((N+1))), axis=None))   # w_min=0
     upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_max[0]*np.ones((N+1)), w_max[1]*np.ones((N+1)), w_max[2]*np.ones((N+1)), w_max[3]*np.ones((N+1))), axis=None)) 
-    #print(upper_bound_gg)
-    #print(upper_bound_gg)
-    #print(sum2(w))
-    ## Cost
+
     cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
 
     cost_lockdown=(
@@ -275,19 +251,48 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     #print(cost_lockdown)
     
     #print(cost_lockdown)
-    ## Initial guess
+
+
+
+
+
+
+
+
+
+
+
+
+    ## Here we compute the dynamics for the control associated to a starting point
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    print("Computation of the starting point:")
+
     if init_S is None:
     	## [Manu] Below, we choose a very rough initialization, but it would be better to choose adequate "intuitive" controls
     	## (defined bang-bang "by hand") and generate the corresponding state variables S, E, I, R, V by Euler explicit method.
-        init_S=mtimes(np.ones((N+1,1)), 2/3*initial_S)
-        init_E=mtimes(np.ones((N+1,1)), 2/3*initial_E)
-        init_I=mtimes(np.ones((N+1,1)), 2/3*initial_I)
-        init_R=mtimes(np.ones((N+1,1)), 2/3*initial_R)
+        init_S=np.ones((N+1,1))* 2/3*initial_S
+        init_E=np.ones((N+1,1))*2/3*initial_E
+        init_I=np.ones((N+1,1))* 2/3*initial_I
+        init_R=np.ones((N+1,1))* 2/3*initial_R
         
         
         init_u=(u_min+u_max)/2 * np.ones(N+1)
         ## [Manu] I have updated the rough way here to initialize w:
-        init_w=.5 * (np.ones((N+1,numControls)))
+        init_w=0.*np.ones((N+1,numControls),dtype=float)
+        init_w[:,:3]=np.minimum(np.maximum(pd.DataFrame.to_numpy(pd.read_csv('../Starting point/w.csv', delimiter=',')),0.),np.array([0.6,0.8,1.]))
 
     init_xu=vertcat(
         reshape(init_S,-1,1),
@@ -295,7 +300,275 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
         reshape(init_I,-1,1),
         reshape(init_R,-1,1),
         reshape(init_w,-1,1),
-        init_u)
+        init_u.copy())
+
+    lower_bound_S = np.zeros((N+1,num_age_groups))
+    lower_bound_S[0,:] = initial_S
+    upper_bound_S =  upper_bound * np.ones((N+1,num_age_groups))
+    upper_bound_S[0,:] = initial_S
+
+    lower_bound_E = np.zeros((N+1,num_age_groups))
+    lower_bound_E[0,:]= initial_E
+    upper_bound_E = upper_bound * np.ones((N+1,num_age_groups))
+    upper_bound_E[0,:] = initial_E
+
+    lower_bound_I = np.zeros((N+1,num_age_groups))
+    lower_bound_I[0,:] = initial_I
+    upper_bound_I = upper_bound * np.ones((N+1,num_age_groups))
+    upper_bound_I[0,:] = initial_I
+
+    lower_bound_R =  np.zeros((N+1,num_age_groups))
+    lower_bound_R[0,:] = initial_R
+    upper_bound_R = upper_bound * np.ones((N+1,num_age_groups))
+    upper_bound_R[0,:] = initial_R
+
+
+
+    lower_bound_u = u_min*np.ones(N+1)
+    upper_bound_u = u_max*np.ones(N+1)
+    lower_bound_w = init_w
+    upper_bound_w = init_w
+    
+    #upper_bound_w[0:8, :] = 0   ## [Manu] this constraint means that we switch off the two first controls, right?
+    #print(upper_bound_w)
+    #print(upper_bound_w)
+    lower_bound_xu = vertcat(
+        reshape(lower_bound_S,-1,1),
+        reshape(lower_bound_E,-1,1),
+        reshape(lower_bound_I,-1,1),
+        reshape(lower_bound_R,-1,1),
+        reshape(lower_bound_w,-1,1),
+        lower_bound_u)
+
+    upper_bound_xu = vertcat(
+        reshape(upper_bound_S,-1,1),
+        reshape(upper_bound_E,-1,1),
+        reshape(upper_bound_I,-1,1),
+        reshape(upper_bound_R,-1,1),
+        reshape(upper_bound_w,-1,1),
+        upper_bound_u)
+
+    ## Solve
+    optim_problem = {
+        'x' : vertcat(
+            reshape(S, -1, 1),
+            reshape(E, -1, 1),
+            reshape(I, -1, 1),
+            reshape(R, -1, 1),
+            reshape(w, -1, 1),
+            u,),
+        'f' : cost_all, # You might change the cost here.
+        'g' : gg}
+    options = {'error_on_fail': False}
+#     options['ipopt.linear_solver'] = 'mumps'  # ma27
+#     options['ipopt.hessian_approximation'] = 'exact'   #'exact', 'limited-memory'
+#     options['ipopt.tol'] = 1e-4
+#     options['ipopt.acceptable_tol'] = 1e-4
+#     options['ipopt.acceptable_constr_viol_tol'] = 1e-4
+    # # options['ipopt.print_level'] = 0
+    options['ipopt.print_frequency_iter'] = 100
+    options['print_time'] = 0
+    # # options['ipopt.warm_start_init_point'] = 'yes'
+    options['ipopt.max_iter'] = 10000
+    # options['ipopt.expect_infeasible_problem'] = "no"
+    # options['ipopt.bound_frac'] = 0.5
+    # options['ipopt.start_with_resto'] = "no"
+    # options['ipopt.required_infeasibility_reduction'] = 0.85
+    # options['ipopt.acceptable_iter'] = 8
+    solver = casadi.nlpsol('solver', 'ipopt', optim_problem, options)
+    result = solver(x0=init_xu,                   ## initialization
+                    lbx=lower_bound_xu,           ## lower bounds on the global unknown x
+                    ubx=upper_bound_xu,           ## upper bounds on the global unknown x
+                    lbg=lower_bound_gg,           ## lower bounds on g
+                    ubg=upper_bound_gg)           ## upper bounds on g
+
+    cost=result['f']; xu=result['x']; g=result['g'] ## must be 0
+    S=xu[:(1 * num_age_groups * (N+1))]
+    S=reshape(S,N+1, num_age_groups)
+    E=xu[(1 * num_age_groups * (N+1)):(2 * num_age_groups * (N+1))]
+    E=reshape(E,N+1, num_age_groups)
+    I=xu[(2 * num_age_groups * (N+1)):(3 * num_age_groups * (N+1))]
+    I=reshape(I,N+1, num_age_groups)
+    R=xu[(3 * num_age_groups * (N+1)):(4 * num_age_groups * (N+1))]
+    R=reshape(R,N+1, num_age_groups)
+    w=xu[(4 * num_age_groups * (N+1)):(4 * num_age_groups * (N+1))+(numControls*(N+1))]
+    w=reshape(w,N+1,numControls)
+    print(cost)
+
+
+    init_S=S
+    init_E=E
+    init_I=I
+    init_R=R
+        
+        
+    init_w=w
+
+
+
+
+
+
+# Now we look for the optimum
+
+
+
+
+
+
+    ## Declaration of variables
+    S=MX.sym('S', N+1, num_age_groups)
+    E=MX.sym('E', N+1, num_age_groups)
+    I=MX.sym('I', N+1, num_age_groups)
+    R=MX.sym('R', N+1, num_age_groups)
+   # V=MX.sym('V',N+1,num_age_groups)
+    dSdt=MX.sym('dSdt', N+1, num_age_groups)
+    dEdt=MX.sym('dEdt', N+1, num_age_groups)
+    dIdt=MX.sym('dIdt', N+1, num_age_groups)
+    dRdt=MX.sym('dRdt', N+1, num_age_groups)
+   
+    u=MX.sym('u',N+1)
+    w=MX.sym('w',N+1, numControls)
+
+    
+    ## Discretization of dynamics with implicit RK2
+    dSdt = ( -1*(1-w[:,2])*(1-w[:,2]) *( 
+         # The following block corresponds to the interactions that happen when commuting
+
+         (1-w[:,3])*(
+            (1-w[:,0]) * beta * S * mtimes(I,mat_old_transport-mat_only_old_transport)
+            +(1-w[:,0])*(1-w[:,0]) * beta * S * mtimes(I,mat_only_old_transport) 
+            +(1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport)) 
+            +beta * S * mtimes(I,matrix4_transport) 
+         )
+        # The following blocks correspond to the interactions that are indirectly impacted by the closure of public transports in a linear way
+        +(1-w[:,3])*(
+            (1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*commuting_proportions).T * (mtimes((I.T*(1-commuting_proportions)).T,mat_school))
+            +beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,matrix4) 
+
+            +(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*(1-commuting_proportions)).T * (mtimes((I.T*commuting_proportions).T,mat_school)) 
+            +beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,matrix4) 
+         )
+         # The following blocks correspond to the interactions that are indirectly impacted by the closure of public transports in a quadratic way
+        +(1-w[:,3])*(1-w[:,3])*(
+            (1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*commuting_proportions).T * (mtimes((I.T*commuting_proportions).T,mat_school)) 
+            +beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,matrix4) 
+         )
+         # The following blocks correspond to the interactions that are not impacted by the closure of public transports
+         +(
+            (1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*(1-commuting_proportions)).T * (mtimes((I.T*(1-commuting_proportions)).T,mat_school)) 
+            +beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,matrix4) 
+         )
+
+
+         )/ repmat(mtimes(tab_N, a), N+1, 1) )
+    
+    dEdt = (1-w[:,2])*(1-w[:,2]) *( 
+         # The following block corresponds to the interactions that happen when commuting
+
+         (1-w[:,3])*(
+            (1-w[:,0]) * beta * S * mtimes(I,mat_old_transport-mat_only_old_transport)
+            +(1-w[:,0])*(1-w[:,0]) * beta * S * mtimes(I,mat_only_old_transport) 
+            +(1-w[:,1]) * beta * S * (mtimes(I,mat_school_transport)) 
+            +beta * S * mtimes(I,matrix4_transport) 
+         )
+        # The following blocks correspond to the interactions that are indirectly impacted by the closure of public transports in a linear way
+        +(1-w[:,3])*(
+            (1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*commuting_proportions).T * (mtimes((I.T*(1-commuting_proportions)).T,mat_school)) 
+            +beta * (S.T*commuting_proportions).T * mtimes((I.T*(1-commuting_proportions)).T,matrix4) 
+
+            +(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*(1-commuting_proportions)).T * (mtimes((I.T*commuting_proportions).T,mat_school)) 
+            +beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*commuting_proportions).T,matrix4) 
+         )
+         # The following blocks correspond to the interactions that are indirectly impacted by the closure of public transports in a quadratic way
+        +(1-w[:,3])*(1-w[:,3])*(
+            (1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*commuting_proportions).T * (mtimes((I.T*commuting_proportions).T,mat_school))
+            +beta * (S.T*commuting_proportions).T * mtimes((I.T*commuting_proportions).T,matrix4) 
+         )
+         # The following blocks correspond to the interactions that are not impacted by the closure of public transports
+         +(
+            (1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,mat_old-mat_only_old)
+            +(1-w[:,0])*(1-w[:,0]) * beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,mat_only_old) 
+            +(1-w[:,1]) * beta * (S.T*(1-commuting_proportions)).T * (mtimes((I.T*(1-commuting_proportions)).T,mat_school)) 
+            +beta * (S.T*(1-commuting_proportions)).T * mtimes((I.T*(1-commuting_proportions)).T,matrix4) 
+         )
+
+
+         )/ repmat(mtimes(tab_N, a), N+1, 1) - delta * E
+    
+    dIdt = delta * E - gamma * I 
+    
+    dRdt = gamma * I   #- sigma*R
+
+
+    
+    cont_dynS = S[1:N+1,:] - S[0:N,:] - T/(2*N) * (dSdt[0:N,:] + dSdt[1:N+1,:])
+    cont_dynE = E[1:N+1,:] - E[0:N,:] - T/(2*N) * (dEdt[0:N,:] + dEdt[1:N+1,:])
+    cont_dynI = I[1:N+1,:] - I[0:N,:] - T/(2*N) * (dIdt[0:N,:] + dIdt[1:N+1,:])
+    cont_dynR = R[1:N+1,:] - R[0:N,:] - T/(2*N) * (dRdt[0:N,:] + dRdt[1:N+1,:])
+
+
+
+
+    cont_dyn = vertcat(
+        reshape(cont_dynS,-1,1),
+        reshape(cont_dynE,-1,1),
+        reshape(cont_dynI,-1,1),
+        reshape(cont_dynR,-1,1))
+    
+    
+    ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
+    gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2],w[:,3])
+   # lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_min * np.ones(3*(N+1)))   # w_min=0
+   # upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max * np.ones(3*(N+1)))
+    
+    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_min[0]*np.ones((N+1)), w_min[1]*np.ones((N+1)), w_min[2]*np.ones((N+1)), w_min[3]*np.ones((N+1))), axis=None))   # w_min=0
+    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_max[0]*np.ones((N+1)), w_max[1]*np.ones((N+1)), w_max[2]*np.ones((N+1)), w_max[3]*np.ones((N+1))), axis=None)) 
+
+    cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
+
+    cost_lockdown=(
+        sum2((sum1(commuting_proportions * mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-(1-w[:,0])*(1-w[:,2])*(1-w[:,3]))) 
+        + sum2((sum1(commuting_proportions * mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(1-(1-w[:,1])*(1-w[:,2])*(1-w[:,3])))
+        + sum2((sum1(commuting_proportions * matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(1-(1-w[:,2])*(1-w[:,3])))
+        
+        + sum2((sum1((1-commuting_proportions) * mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(1-(1-w[:,0])*(1-w[:,2]))) 
+        + sum2((sum1((1-commuting_proportions) * mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(1-(1-w[:,1])*(1-w[:,2])))
+        + sum2((sum1((1-commuting_proportions) * matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
+        )
+    #cost_lockdown=sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))
+    cost_end = sum2(I[N, :] * death_rates)*cost_per_death*90
+    cost_smoothness=1/N*sum1(sum2(w[1:,3]*w[1:,3]+w[:N,3]*w[:N,3]-2*w[:N,3]*w[1:,3]))*10**9
+    cost_all=cost_deaths+cost_lockdown+cost_end+cost_smoothness
+
+
+
+
+    print("Computation of the optimum:")
+
+
+    init_xu=vertcat(
+        reshape(init_S,-1,1),
+        reshape(init_E,-1,1),
+        reshape(init_I,-1,1),
+        reshape(init_R,-1,1),
+        reshape(init_w,-1,1),
+        init_u.copy())
+    print(init_w)
 
     lower_bound_S = np.zeros((N+1,num_age_groups))
     lower_bound_S[0,:] = initial_S
@@ -363,10 +636,10 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     # # options['ipopt.print_level'] = 0
     options['ipopt.print_frequency_iter'] = 100
     options['print_time'] = 0
-    # # options['ipopt.warm_start_init_point'] = 'yes'
+    #options['ipopt.warm_start_init_point'] = 'yes'
     options['ipopt.max_iter'] = 10000
     # options['ipopt.expect_infeasible_problem'] = "no"
-    # options['ipopt.bound_frac'] = 0.5
+    options['ipopt.slack_bound_frac'] = 0.5
     # options['ipopt.start_with_resto'] = "no"
     # options['ipopt.required_infeasibility_reduction'] = 0.85
     # options['ipopt.acceptable_iter'] = 8
@@ -378,9 +651,9 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
                     ubg=upper_bound_gg)           ## upper bounds on g
 
     cost=result['f']; xu=result['x']; g=result['g'] ## must be 0
-
     S=xu[:(1 * num_age_groups * (N+1))]
     S=reshape(S,N+1, num_age_groups)
+    print(cost)
     E=xu[(1 * num_age_groups * (N+1)):(2 * num_age_groups * (N+1))]
     E=reshape(E,N+1, num_age_groups)
     I=xu[(2 * num_age_groups * (N+1)):(3 * num_age_groups * (N+1))]
@@ -391,6 +664,6 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
    # V=reshape(V,N+1, num_age_groups)
     w=xu[(4 * num_age_groups * (N+1)):(4 * num_age_groups * (N+1))+(numControls*(N+1))]
     w=reshape(w,N+1,numControls)
+    w=np.array(w)
     u=xu[((4 * num_age_groups * (N+1))+numControls * (N+1)):]
-    print(cost)
     return S, E, I, R, w,cost

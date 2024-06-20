@@ -106,7 +106,28 @@ def print_heat_map(
     plt.close()
 
 
-def generate_all_plots(directory_path, w, S, E, I, R,cost, beta, percentage_essential,cost_of_lockdown, problem, show=False):
+def generate_all_plots(directory_path, w, S, E, I, R,cost, beta, percentage_essential,cost_of_lockdown, problem, show=False, store_data=False):
+    if store_data:
+        try:
+            pd.DataFrame(np.array(S)).to_csv('../Starting point/S.csv', index=False)
+            pd.DataFrame(np.array(E)).to_csv('../Starting point/E.csv', index=False)
+            pd.DataFrame(np.array(I)).to_csv('../Starting point/I.csv', index=False)
+            pd.DataFrame(np.array(R)).to_csv('../Starting point/R.csv', index=False)
+            pd.DataFrame(np.array(w)).to_csv('../Starting point/w.csv', index=False)
+        except:
+            try:
+                pd.DataFrame(S).to_csv('../Starting point/S.csv', index=False)
+                pd.DataFrame(E).to_csv('../Starting point/E.csv', index=False)
+                pd.DataFrame(I).to_csv('../Starting point/I.csv', index=False)
+                pd.DataFrame(R).to_csv('../Starting point/R.csv', index=False)
+                pd.DataFrame(w).to_csv('../Starting point/w.csv', index=False)
+            except:
+                pd.DataFrame(np.array(list(S))).to_csv('../Starting point/S.csv', index=False)
+                pd.DataFrame(np.array(list(E))).to_csv('../Starting point/E.csv', index=False)
+                pd.DataFrame(np.array(list(I))).to_csv('../Starting point/I.csv', index=False)
+                pd.DataFrame(np.array(list(R))).to_csv('../Starting point/R.csv', index=False)
+                pd.DataFrame(np.array(list(w))).to_csv('../Starting point/w.csv', index=False)
+
     generate_abstact_plotU(
         directory_path, "Lockdown Policy", cost, w, beta, percentage_essential, problem, show
     )
