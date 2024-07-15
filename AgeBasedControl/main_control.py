@@ -3,7 +3,7 @@ from utils import transform_to_have_essential_workers, read_data_from_csv, make_
 from plotting import generate_all_plots
 from plotting import print_heat_map
 #from simulator import simulate
-from controllerV2 import solve_control_problem, model
+from controllerV3 import solve_control_problem, model
 import csv
 
 import time

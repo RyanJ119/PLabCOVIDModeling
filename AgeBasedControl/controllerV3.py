@@ -147,7 +147,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     cost_lockdown=sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0]+w[:,2]-w[:,0]*w[:,2])) + sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]+w[:,2]-w[:,1]*w[:,2]))+ sum2((sum1( matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
     #cost_lockdown=sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))
     cost_end = sum2(I[N, :] * death_rates)*cost_per_death*90
-    cost_all=cost_deaths+cost_lockdown+cost_end
+    cost_smoothness=1/N*sum1(sum2(fabs(w[1:,:]-w[:N,:])))*10**4
+    cost_all=cost_deaths+cost_lockdown+cost_end+cost_smoothness
 
    # print(cost_deaths)
     
