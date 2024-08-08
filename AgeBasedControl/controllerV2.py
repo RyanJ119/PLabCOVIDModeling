@@ -35,9 +35,9 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     u_min= problem.R0 * gamma
     u_max= problem.R0 * gamma  # bounds on u: if u_min=u_max then no lockdown
     upper_bound = inf
-    w_min = [0, 0, 0]
+    w_min = [0]
     #w_max=.9  ## w_max is the max lockdown 
-    w_max=[1, 1, 1]  ## w_max is the minimum lockdown 
+    w_max=[1]  ## w_max is the minimum lockdown 
     beta = problem.R0 * gamma
     death_rates = problem.death_rates
     initial_S = problem.initial_S
@@ -45,7 +45,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     initial_I = problem.initial_I
     initial_R = problem.initial_R
    # print(problem.initial_E)
-    numControls = 3
+    numControls = 1
     tab_N= problem.population
     num_age_groups = tab_N.shape[1]
 
@@ -69,29 +69,10 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
 ################################### Building Matrices for age based control
     dimensions = np.shape(a)
     rows, columns = dimensions
-    mat_old= a.copy()
-    
-    for i in range(rows):
-        for j in range(columns):
-            mat_old[i][j] = mat_old[i][j]*tau1
-            if i<rows-1:
-                if j<columns-1:
-                    mat_old[i][j]=0  #mat_old is the interactions that the elderly have with all other populations
-    mat_school=a.copy()
-    
-    for i in range(rows):
-        for j in range(columns):
-            mat_school[i][j] = mat_school[i][j]*tau2
-            if (i != 0 and i!=1 and i!=2 and i!=3 ) or (j != 0 and j!=1 and j!=2 and j!=3):
-                mat_school[i][j]=0             #mat_school is the interactions children have with each other
-  
-    matrix4 = a -    (mat_old +   mat_school  )
-    #matrix4=a.copy()
-#####################################
 
     
     ## Discretization of dynamics with implicit RK2
-    dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
+    dSdt = ( -1*( ((1-w[:,0]) *(1-w[:,0]) * beta * S * (mtimes(I,a)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( (beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
     #dSdt = ( -1*( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)) ) +( beta * S * (mtimes(I,mat_school))) +(  beta * S * (mtimes(I,matrix4))) )/ repmat(mtimes(tab_N, a), N+1, 1) )  #+sigma*R
    
@@ -102,7 +83,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     #dSdt = -u * beta * S * ((mtimes(I,a)) / repmat(mtimes(tab_N, a), N+1, 1))  #*(S>=0)*(E>=0)*(I>=0)
     #dSdt[np.isnan(dSdt)] = 0
     
-    dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ((1-w[:,1]) * beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
+    dEdt = ( ((1-w[:,0]) *(1-w[:,0]) * beta * S * (mtimes(I,a)) ))/ repmat(mtimes(tab_N, a), N+1, 1)  - delta * E
     #dEdt = ( ( ( beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +((1-w[:,2]) * beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
     #dEdt = ( ( ((1-w[:,0]) * beta * S * (mtimes(I,mat_old)))  + ( beta * S * (mtimes(I,mat_school))) +( beta * S * (mtimes(I,matrix4)) ))/ repmat(mtimes(tab_N, a), N+1, 1) )  - delta * E
    
@@ -131,23 +112,25 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     
     
     ## Take into account the constraint  \sum_{j=1}^6 w_j(t) <= w_max
-    gg = vertcat(cont_dyn, w[:,0], w[:,1], w[:,2])
+    gg = vertcat(cont_dyn, w[:,0])
    # lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_min * np.ones(3*(N+1)))   # w_min=0
    # upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max * np.ones(3*(N+1)))
     
-    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_min[0]*np.ones((N+1)), w_min[1]*np.ones((N+1)), w_min[2]*np.ones((N+1))), axis=None))   # w_min=0
-    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), np.concatenate((w_max[0]*np.ones((N+1)), w_max[1]*np.ones((N+1)), w_max[2]*np.ones((N+1))), axis=None)) 
+    lower_bound_gg = vertcat(np.zeros(4 * num_age_groups * N),w_min[0]*np.ones((N+1)))   # w_min=0
+    upper_bound_gg = vertcat(np.zeros(4 * num_age_groups * N), w_max[0]*np.ones((N+1)))
     #print(upper_bound_gg)
     #print(upper_bound_gg)
     #print(sum2(w))
     ## Cost
     cost_deaths = sum2(R[N, :] * death_rates)*cost_per_death     #   cost_deaths = sum1(mtimes(I,death_rates.T))
 
-    cost_lockdown=sum2((sum1( mat_old) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_old*sum2(w[:,0])) + sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))+ sum2((sum1( matrix4) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,2]))
+    cost_lockdown=sum2((sum1(a) / sum1(a)) *tab_N )*sum1(cost_of_lockdown*sum2(w[:,0]))
     #cost_lockdown=sum2((sum1( mat_school) / sum1(a)) *tab_N )*sum1(cost_of_lockdown_school*sum2(w[:,1]))
     cost_end = sum2(I[N, :] * death_rates)*cost_per_death*90
-    cost_all=cost_deaths+cost_lockdown+cost_end
-
+    cost_laplacian=1/N*sum1(sum2(w[1:,:]*w[1:,:]+w[:N,:]*w[:N,:]-2*w[1:,:]*w[:N,:]))*10**14
+    cost_smoothness=1/N*sum1(sum2(fabs(w[1:,:]-w[:N,:])))*10**12
+    cost_ryan=(1/N*sum1(sum2(fabs(w[1:,:]-w[:N,:])>0.01)))**2*10**16
+    cost_all=cost_deaths+cost_lockdown+cost_end+cost_ryan
    # print(cost_deaths)
     
     #print(cost_lockdown)
@@ -157,15 +140,15 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     if init_S is None:
     	## [Manu] Below, we choose a very rough initialization, but it would be better to choose adequate "intuitive" controls
     	## (defined bang-bang "by hand") and generate the corresponding state variables S, E, I, R, V by Euler explicit method.
-        init_S=mtimes(np.ones((N+1,1)), 2/3*initial_S)
-        init_E=mtimes(np.ones((N+1,1)), 2/3*initial_E)
-        init_I=mtimes(np.ones((N+1,1)), 2/3*initial_I)
-        init_R=mtimes(np.ones((N+1,1)), 2/3*initial_R)
+        init_S=pd.DataFrame.to_numpy(pd.read_csv('../Starting point/S.csv', delimiter=','))
+        init_E=pd.DataFrame.to_numpy(pd.read_csv('../Starting point/E.csv', delimiter=','))
+        init_I=pd.DataFrame.to_numpy(pd.read_csv('../Starting point/I.csv', delimiter=','))
+        init_R=pd.DataFrame.to_numpy(pd.read_csv('../Starting point/R.csv', delimiter=','))
         
         
         init_u=(u_min+u_max)/2 * np.ones(N+1)
         ## [Manu] I have updated the rough way here to initialize w:
-        init_w=.5 * (np.ones((N+1,numControls)))
+        init_w=pd.DataFrame.to_numpy(pd.read_csv('../Starting point/w.csv', delimiter=','))
 
     init_xu=vertcat(
         reshape(init_S,-1,1),
@@ -242,7 +225,7 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     options['ipopt.print_frequency_iter'] = 100
     options['print_time'] = 0
     # # options['ipopt.warm_start_init_point'] = 'yes'
-    options['ipopt.max_iter'] = 10000
+    options['ipopt.max_iter'] = 100000
     # options['ipopt.expect_infeasible_problem'] = "no"
     # options['ipopt.bound_frac'] = 0.5
     # options['ipopt.start_with_resto'] = "no"
@@ -270,5 +253,8 @@ def solve_control_problem(problem, max_num_vaccines_per_day, init_S=None,
     w=xu[(4 * num_age_groups * (N+1)):(4 * num_age_groups * (N+1))+(numControls*(N+1))]
     w=reshape(w,N+1,numControls)
     u=xu[((4 * num_age_groups * (N+1))+numControls * (N+1)):]
-    print(cost)
+    ryan_cost=(1/N*np.sum(np.abs(w[1:]-w[:N])>0.01))**2*10**16
+    tv_cost=1/N*np.sum(np.abs(w[1:]-w[:N]))*10**8
+    laplacian_cost=1/N*np.sum(np.power(w[1:]-w[:N],2))*10**14
+    print(cost,ryan_cost,cost-ryan_cost)
     return S, E, I, R, w,cost

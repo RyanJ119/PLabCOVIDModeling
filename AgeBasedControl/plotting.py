@@ -44,42 +44,6 @@ def generate_abstact_plotU(
     plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
     plt.ylim(bottom=-.5)  # adjust the bottom leaving top unchanged
     plt.title(
-        f"Lockdown of Elderly R0={problem.R0}"
-    )
-    plt.legend()
-    plt.savefig(
-        os.path.join(directory_path, f"Old-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
-    if show:
-        plt.show()
-    plt.close()
-    
-    plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 1])
-    plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
-    plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
-    plt.title(
-        f"Lockdown of School Age R0={problem.R0}"
-    )
-    plt.legend()
-    plt.savefig(
-        os.path.join(directory_path, f"School-beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-{name}.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
-    if show:
-        plt.show()
-    plt.close()
-    
-    
-
-    plt.rcParams["figure.figsize"] = (8, 8)
-    plt.plot(t, series[:, 2])
-    plt.ylim(top=1.5)  # adjust the top leaving bottom unchanged
-    plt.ylim(bottom=-.50)  # adjust the bottom leaving top unchanged
-    plt.title(
         f"Lockdown of Public R0={problem.R0} "
     )
     plt.legend()
@@ -91,56 +55,36 @@ def generate_abstact_plotU(
     if show:
         plt.show()
     plt.close()
-
+    
     
 def print_heat_map(
          directory_path, w, S, E, I, R, beta, percentage_essential, problem, show=False
 ):
-    cost_deaths = np.sum(R[-1, :] * problem.death_rates)
-    
-    days = np.linspace(0, problem.time_horizon, problem.N + 1)
-
-    vac_plan  = pd.DataFrame(np.array(w))
-
-    groups = ['0-4', '5-14', '15-19 non-essential', '15-19 essential', '20-39 non-essential', 
-
-              '20-39 essential', '40-59 non-essential','40-59 essential', '60-69 non-essential', 
-
-              '60-69 essential','70+']
-
-    plt.figure(figsize=(12, 12))
-
-    
-
-    sb.heatmap(np.transpose(np.array(vac_plan)), cmap='Blues', robust=True,
-
-           xticklabels=[day if day % 5 == 0 or day == max(days) else '' for day in days],
-
-           yticklabels=groups)
-
-    cax = plt.gcf().axes[-1]
-
-    cax.tick_params(labelsize=12)
-
-    plt.xticks(fontsize=12)
-
-    plt.yticks(fontsize=14)
-
-    plt.title(
-        f"Cost: {cost_deaths}"
-    )
-    plt.savefig(
-        os.path.join(directory_path, f"beta-{beta}-R0-{problem.R0}-PE-{percentage_essential}-Heat-Map-Vaccine-Policy.png"),
-        dpi=300,
-        bbox_inches="tight",
-    )
-    
-    if show:
-        plt.show()
-    plt.close()
+    return None
 
 
-def generate_all_plots(directory_path, w, S, E, I, R,cost, beta, percentage_essential,cost_of_lockdown, problem, show=False):
+def generate_all_plots(directory_path, w, S, E, I, R,cost, beta, percentage_essential,cost_of_lockdown, problem, show=False, store_data=False):
+    if store_data:
+        try:
+            pd.DataFrame(np.array(S)).to_csv('../Starting point/S.csv', index=False)
+            pd.DataFrame(np.array(E)).to_csv('../Starting point/E.csv', index=False)
+            pd.DataFrame(np.array(I)).to_csv('../Starting point/I.csv', index=False)
+            pd.DataFrame(np.array(R)).to_csv('../Starting point/R.csv', index=False)
+            pd.DataFrame(np.array(w)).to_csv('../Starting point/w.csv', index=False)
+        except:
+            try:
+                pd.DataFrame(S).to_csv('../Starting point/S.csv', index=False)
+                pd.DataFrame(E).to_csv('../Starting point/E.csv', index=False)
+                pd.DataFrame(I).to_csv('../Starting point/I.csv', index=False)
+                pd.DataFrame(R).to_csv('../Starting point/R.csv', index=False)
+                pd.DataFrame(w).to_csv('../Starting point/w.csv', index=False)
+            except:
+                pd.DataFrame(np.array(list(S))).to_csv('../Starting point/S.csv', index=False)
+                pd.DataFrame(np.array(list(E))).to_csv('../Starting point/E.csv', index=False)
+                pd.DataFrame(np.array(list(I))).to_csv('../Starting point/I.csv', index=False)
+                pd.DataFrame(np.array(list(R))).to_csv('../Starting point/R.csv', index=False)
+                pd.DataFrame(np.array(list(w))).to_csv('../Starting point/w.csv', index=False)
+
     generate_abstact_plotU(
         directory_path, "Lockdown Policy", cost, w, beta, percentage_essential, problem, show
     )
