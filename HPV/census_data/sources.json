@@ -1,0 +1,21 @@
+{
+  "geography": "United States resident population, both sexes",
+  "population_date": "2025-07-01",
+  "vintage": 2025,
+  "births_period": "2024-07-01 to 2025-07-01",
+  "annual_births": 3620461,
+  "total_population": 341784857,
+  "population_ages_0_99": 341665675,
+  "excluded_population_100_plus": 119182,
+  "births_workbook_cell": "NC-EST2025-COMPN!I7",
+  "retrieved": "2026-10-24",
+  "article_url": "https://www.census.gov/library/stories/2026/04/age-and-sex.html",
+  "age_url": "https://www2.census.gov/programs-surveys/popest/datasets/2020-2025/national/asrh/nc-est2025-agesex-res.csv",
+  "births_url": "https://www2.census.gov/programs-surveys/popest/tables/2020-2025/national/asrh/nc-est2025-compn.xlsx",
+  "notes": "The tables linked from the April article have subsequently been updated; births workbook release June 2026. Exclude AGE=999 total row and AGE=100 open-ended category. Counts within each one-year band assumed uniform for remapping.",
+  "sha256": {
+    "nc-est2025-agesex-res.csv": "6436d4f6972d415caf14cb20776807bc031fc9f1bfc9d6ff26055d592a2b0230",
+    "nc-est2025-compn.xlsx": "ae378fcbb12b7fd78dc600acf17b9f35f1583c4f447e9d12ddd6c6d8d16d0bd4",
+    "us_2025_age_counts.csv": "3e820a68313fe52adb19b672d6e9e85296ab813253ac2768f96a0e268736525c"
+  }
+}
