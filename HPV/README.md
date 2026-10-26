@@ -12,7 +12,7 @@ python3 hpv_pde.py --config example_parameters.json --years 20 --save-every 0.5
 python3 -m unittest -v test_hpv_pde.py
 ```
 
-**Every supplied numerical value is an illustrative placeholder, not an estimate from the manuscript or clinical data.** The manuscript's numerical ODE parameters cannot be substituted directly into this PDE.
+**Every supplied numerical value is an illustrative placeholder, not an estimate or clinical data.** The manuscript's numerical ODE parameters cannot be substituted directly into this PDE.
 
 `summary.csv` contains population, burden, cumulative cancer outflow, age outflow, births, and group totals. `solution.npz` contains cell-center ages, disease coordinates, times, group names, and `density[time, group, age, disease]`. `parameters.json` records the parameter configuration used. Average cancer incidence over an output interval is the difference in cumulative cancer divided by the interval duration. Cancer is an absorbing exit; individuals who reach it are no longer in the tracked density.
 
